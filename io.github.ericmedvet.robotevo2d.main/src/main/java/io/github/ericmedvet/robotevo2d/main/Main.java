@@ -36,7 +36,7 @@ public class Main {
           ")";
 
   public static void main(String[] args) throws IOException {
-    VSRValidation();
+    VSRValidationCebysev();
   }
 
   public static void VSRValidation() throws IOException {
@@ -49,22 +49,19 @@ public class Main {
     final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     final FileWriter writer = new FileWriter("FL_first_experiment.csv");
     writer.write("rigids;point;segment;genotype;fitness\n");
-    final int NOFSHAPES = 1;
-    final double SEGMENTLENGTH = 0.2;
-    final int NOFPOINTS = 1;
-    final int NOFTRIALS = 1;
-    final int FRAGMENTATIONS = 10;
+    final int NOFSHAPES = 11;
+    final double SEGMENTLENGTH = 0.5;
+    final int NOFPOINTS = 20;
+    final int NOFTRIALS = 20;
+    final int FRAGMENTATIONS = 500;
     for (int rigids = 0; rigids < NOFSHAPES; ++rigids) {
       InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
               (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(rigids)));
       for (int point = 0; point < NOFPOINTS; ++point) {
         List<Double> baseGenotype = IntStream.range(0, 20).mapToDouble(i -> rg.nextDouble(-1, 1)).boxed().toList();
-        System.out.println("BASE POINT: ");
-        System.out.println(baseGenotype);
-        System.out.println("");
-        genotypes = new ArrayList<>(10 * FRAGMENTATIONS);
-        results = new ArrayList<>(10 * FRAGMENTATIONS);
-        //baseResult = executorService.submit(() -> locomotion.run(mapper.apply(baseGenotype), engine.get()).firstAgentXVelocity());
+        genotypes = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
+        results = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
+        baseResult = executorService.submit(() -> locomotion.run(mapper.apply(baseGenotype), engine.get()).firstAgentXVelocity());
         for (int trial = 0; trial < NOFTRIALS; ++trial) {
           List<Double> randomVector = IntStream.range(0, 20).mapToDouble(i -> rg.nextGaussian()).boxed().toList();
           double norm = Math.sqrt(randomVector.stream().mapToDouble(i -> Math.pow(i, 2)).sum());
@@ -74,25 +71,73 @@ public class Main {
             List<Double> placeholder1 = new ArrayList<>(randomVector);
             List<Double> placeholder2 = IntStream.range(0, 20).mapToDouble(i -> baseGenotype.get(i) + tick * placeholder1.get(i)).boxed().toList();
             genotypes.add(placeholder2);
-            System.out.println(placeholder2);
-            //results.add(executorService.submit(() -> locomotion.run(mapper.apply(placeholder2), engine.get()).firstAgentXVelocity()));
+            results.add(executorService.submit(() -> locomotion.run(mapper.apply(placeholder2), engine.get()).firstAgentXVelocity()));
           }
         }
-        /*try {
-          writer.write(String.format("%d;%d;%d;%s;%.6f\n", rigids, point, -1, serialize(baseGenotype), baseResult.get()));
+        try {
+          writer.write(String.format("%d;%d;%d;%s;", rigids, point, -1, serialize(baseGenotype)) + baseResult.get() + "\n");
           for (int counter = 0; counter < results.size(); ++counter) {
             writer.write(
-                    String.format("%d;%d;%d;%s;%.6f\n",
-                            rigids, point, counter / FRAGMENTATIONS,
-                            serialize(genotypes.get(counter)),
-                            results.get(counter).get())
-            );
+                    String.format("%d;%d;%d;%s;", rigids, point, counter / FRAGMENTATIONS, serialize(genotypes.get(counter))) +
+                            results.get(counter).get() + "\n");
           }
         } catch (Exception e) {
           e.printStackTrace();
-        }*/
+        }
       }
     }
+    writer.close();
+    executorService.shutdown();
+  }
+
+  public static void VSRValidationCebysev() throws IOException {
+    final Locomotion locomotion = (Locomotion) nb.build("sim.task.locomotion(duration = 10)");
+    String actualRobotMapper = String.format(robotMapper, String.format(bipedBody, "sim.agent.vsr.shape.free(s = \"%s\")"), sin);
+    Future<Double> baseResult;
+    List<List<Double>> genotypes;
+    List<Future<Double>> results;
+    final Random rg = new Random();
+    final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    final FileWriter writer = new FileWriter("FL_cebysev.csv");
+    writer.write("rigids;point;segment;genotype;fitness\n");
+    final int NOFSHAPES = 11;
+    final double SEGMENTLENGTH = 0.25;
+    final int NOFPOINTS = 20;
+    final int NOFTRIALS = 20;
+    final int FRAGMENTATIONS = 500;
+    for (int rigids = 0; rigids < NOFSHAPES; ++rigids) {
+      InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
+              (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(rigids)));
+      for (int point = 0; point < NOFPOINTS; ++point) {
+        List<Double> baseGenotype = IntStream.range(0, 20).mapToDouble(i -> rg.nextDouble(-1, 1)).boxed().toList();
+        genotypes = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
+        results = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
+        baseResult = executorService.submit(() -> locomotion.run(mapper.apply(baseGenotype), engine.get()).firstAgentXVelocity());
+        for (int trial = 0; trial < NOFTRIALS; ++trial) {
+          List<Double> randomVector = IntStream.range(0, 20).mapToDouble(i -> rg.nextGaussian()).boxed().toList();
+          double norm = Math.sqrt(randomVector.stream().mapToDouble(i -> Math.pow(i, 2)).sum());
+          randomVector = randomVector.stream().mapToDouble(i -> SEGMENTLENGTH * i / norm).boxed().toList();
+          for (int iter = 1; iter < FRAGMENTATIONS + 1; ++iter) {
+            double tick = Math.cos((iter - 0.5) * Math.PI / FRAGMENTATIONS);
+            List<Double> placeholder1 = new ArrayList<>(randomVector);
+            List<Double> placeholder2 = IntStream.range(0, 20).mapToDouble(i -> baseGenotype.get(i) + tick * placeholder1.get(i)).boxed().toList();
+            genotypes.add(placeholder2);
+            results.add(executorService.submit(() -> locomotion.run(mapper.apply(placeholder2), engine.get()).firstAgentXVelocity()));
+          }
+        }
+        try {
+          writer.write(String.format("%d;%d;%d;%s;", rigids, point, -1, serialize(baseGenotype)) + baseResult.get() + "\n");
+          for (int counter = 0; counter < results.size(); ++counter) {
+            writer.write(
+                    String.format("%d;%d;%d;%s;", rigids, point, counter / FRAGMENTATIONS, serialize(genotypes.get(counter))) +
+                            results.get(counter).get() + "\n");
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    writer.close();
     executorService.shutdown();
   }
 
