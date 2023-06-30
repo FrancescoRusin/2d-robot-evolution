@@ -2,7 +2,8 @@
  * @author "Eric Medvet" on 2022/08/28 for robotevo2d
  */
 module io.github.ericmedvet.robotevo2d.main {
-  requires io.github.ericmedvet.jgea.core;
+    uses io.github.ericmedvet.mrsim2d.core.engine.Engine;
+    requires io.github.ericmedvet.jgea.core;
   requires io.github.ericmedvet.jgea.problem;
   requires io.github.ericmedvet.jgea.experimenter;
   requires java.desktop;
