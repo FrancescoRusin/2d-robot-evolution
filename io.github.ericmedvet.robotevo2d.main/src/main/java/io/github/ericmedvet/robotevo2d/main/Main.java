@@ -39,11 +39,11 @@ public class Main {
   private enum Shape {BIPED, WORM, T}
 
   public static void main(String[] args) throws IOException {
-    locomotionValidation(Shape.WORM, "FL_worm_locomotion.csv");
-    jumpingValidation(Shape.WORM, "FL_worm_jumping.csv");
+    locomotionValidation(Shape.WORM, 8, "FL_worm_locomotion.csv");
+    jumpingValidation(Shape.WORM, 8,"FL_worm_jumping.csv");
   }
 
-  public static void locomotionValidation(Shape shape, String fileName) throws IOException {
+  public static void locomotionValidation(Shape shape, int nOfShapes, String fileName) throws IOException {
     final Locomotion locomotion = (Locomotion) nb.build("sim.task.locomotion(duration = 10)");
     String actualRobotMapper = String.format(robotMapper, String.format(robotBody, "sim.agent.vsr.shape.free(s = \"%s\")"), sin);
     Future<Double> baseResult;
@@ -53,12 +53,11 @@ public class Main {
     final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     final FileWriter writer = new FileWriter(fileName);
     writer.write("rigids;point;segment;genotype;fitness\n");
-    final int NOFSHAPES = 11;
     final double SEGMENTLENGTH = 0.5;
     final int NOFPOINTS = 20;
     final int NOFTRIALS = 20;
     final int FRAGMENTATIONS = 500;
-    for (int rigids = 0; rigids < NOFSHAPES; ++rigids) {
+    for (int rigids = 0; rigids < nOfShapes; ++rigids) {
       InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
               (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(shape, rigids)));
       for (int point = 0; point < NOFPOINTS; ++point) {
@@ -94,7 +93,7 @@ public class Main {
     executorService.shutdown();
   }
 
-  public static void jumpingValidation(Shape shape, String fileName) throws IOException {
+  public static void jumpingValidation(Shape shape, int nOfShapes, String fileName) throws IOException {
     final Jumping jumping = (Jumping) nb.build("sim.task.jumping(duration = 10)");
     String actualRobotMapper = String.format(robotMapper, String.format(robotBody, "sim.agent.vsr.shape.free(s = \"%s\")"), sin);
     Future<Double> baseResult;
@@ -104,12 +103,11 @@ public class Main {
     final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     final FileWriter writer = new FileWriter(fileName);
     writer.write("rigids;point;segment;genotype;fitness\n");
-    final int NOFSHAPES = 11;
     final double SEGMENTLENGTH = 0.5;
     final int NOFPOINTS = 20;
     final int NOFTRIALS = 20;
     final int FRAGMENTATIONS = 500;
-    for (int rigids = 0; rigids < NOFSHAPES; ++rigids) {
+    for (int rigids = 0; rigids < nOfShapes; ++rigids) {
       InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
               (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(shape, rigids)));
       for (int point = 0; point < NOFPOINTS; ++point) {
