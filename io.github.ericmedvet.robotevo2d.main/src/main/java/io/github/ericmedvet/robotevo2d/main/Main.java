@@ -39,8 +39,8 @@ public class Main {
   private enum Shape {BIPED, WORM, T}
 
   public static void main(String[] args) throws IOException {
-    locomotionValidation(Shape.WORM, 8, "FL_worm_locomotion.csv");
-    jumpingValidation(Shape.WORM, 8,"FL_worm_jumping.csv");
+    locomotionValidation(Shape.T, 12, "FL_T_locomotion.csv");
+    jumpingValidation(Shape.T, 12,"FL_T_jumping.csv");
   }
 
   public static void locomotionValidation(Shape shape, int nOfShapes, String fileName) throws IOException {
