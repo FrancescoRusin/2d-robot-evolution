@@ -36,11 +36,11 @@ public class Main {
           "b = s.range(min = 1; max = 1)" +
           ")";
 
-  private enum Shape {BIPED, WORM, T}
+  private enum Shape {BIPED, WORM, T, PLUS}
 
   public static void main(String[] args) throws IOException {
-    locomotionValidation(Shape.T, 12, "FL_T_locomotion.csv");
-    jumpingValidation(Shape.T, 12,"FL_T_jumping.csv");
+    locomotionValidation(Shape.PLUS, 19, "FL_plus_locomotion.csv");
+    jumpingValidation(Shape.PLUS, 19,"FL_plus_jumping.csv");
   }
 
   public static void locomotionValidation(Shape shape, int nOfShapes, String fileName) throws IOException {
@@ -53,6 +53,11 @@ public class Main {
     final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     final FileWriter writer = new FileWriter(fileName);
     writer.write("rigids;point;segment;genotype;fitness\n");
+    final int NOFPARAMS = switch (shape) {
+      case BIPED, WORM -> 20;
+      case T -> 24;
+      case PLUS -> 40;
+    };
     final double SEGMENTLENGTH = 0.5;
     final int NOFPOINTS = 20;
     final int NOFTRIALS = 20;
@@ -61,18 +66,18 @@ public class Main {
       InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
               (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(shape, rigids)));
       for (int point = 0; point < NOFPOINTS; ++point) {
-        List<Double> baseGenotype = IntStream.range(0, 20).mapToDouble(i -> rg.nextDouble(-1, 1)).boxed().toList();
+        List<Double> baseGenotype = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextDouble(-1, 1)).boxed().toList();
         genotypes = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
         results = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
         baseResult = executorService.submit(() -> locomotion.run(mapper.apply(baseGenotype), engine.get()).firstAgentXVelocity());
         for (int trial = 0; trial < NOFTRIALS; ++trial) {
-          List<Double> randomVector = IntStream.range(0, 20).mapToDouble(i -> rg.nextGaussian()).boxed().toList();
+          List<Double> randomVector = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextGaussian()).boxed().toList();
           double norm = Math.sqrt(randomVector.stream().mapToDouble(i -> Math.pow(i, 2)).sum());
           randomVector = randomVector.stream().mapToDouble(i -> SEGMENTLENGTH * i / norm).boxed().toList();
           for (int iter = 1; iter < FRAGMENTATIONS + 1; ++iter) {
             double tick = iter / (double) FRAGMENTATIONS;
             List<Double> placeholder1 = new ArrayList<>(randomVector);
-            List<Double> placeholder2 = IntStream.range(0, 20).mapToDouble(i -> baseGenotype.get(i) + tick * placeholder1.get(i)).boxed().toList();
+            List<Double> placeholder2 = IntStream.range(0, NOFPARAMS).mapToDouble(i -> baseGenotype.get(i) + tick * placeholder1.get(i)).boxed().toList();
             genotypes.add(placeholder2);
             results.add(executorService.submit(() -> locomotion.run(mapper.apply(placeholder2), engine.get()).firstAgentXVelocity()));
           }
@@ -103,6 +108,11 @@ public class Main {
     final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     final FileWriter writer = new FileWriter(fileName);
     writer.write("rigids;point;segment;genotype;fitness\n");
+    final int NOFPARAMS = switch (shape) {
+      case BIPED, WORM -> 20;
+      case T -> 24;
+      case PLUS -> 40;
+    };
     final double SEGMENTLENGTH = 0.5;
     final int NOFPOINTS = 20;
     final int NOFTRIALS = 20;
@@ -111,18 +121,18 @@ public class Main {
       InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
               (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(shape, rigids)));
       for (int point = 0; point < NOFPOINTS; ++point) {
-        List<Double> baseGenotype = IntStream.range(0, 20).mapToDouble(i -> rg.nextDouble(-1, 1)).boxed().toList();
+        List<Double> baseGenotype = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextDouble(-1, 1)).boxed().toList();
         genotypes = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
         results = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
         baseResult = executorService.submit(() -> jumping.run(mapper.apply(baseGenotype), engine.get()).firstAgentXVelocity());
         for (int trial = 0; trial < NOFTRIALS; ++trial) {
-          List<Double> randomVector = IntStream.range(0, 20).mapToDouble(i -> rg.nextGaussian()).boxed().toList();
+          List<Double> randomVector = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextGaussian()).boxed().toList();
           double norm = Math.sqrt(randomVector.stream().mapToDouble(i -> Math.pow(i, 2)).sum());
           randomVector = randomVector.stream().mapToDouble(i -> SEGMENTLENGTH * i / norm).boxed().toList();
           for (int iter = 1; iter < FRAGMENTATIONS + 1; ++iter) {
             double tick = iter / (double) FRAGMENTATIONS;
             List<Double> placeholder1 = new ArrayList<>(randomVector);
-            List<Double> placeholder2 = IntStream.range(0, 20).mapToDouble(i -> baseGenotype.get(i) + tick * placeholder1.get(i)).boxed().toList();
+            List<Double> placeholder2 = IntStream.range(0, NOFPARAMS).mapToDouble(i -> baseGenotype.get(i) + tick * placeholder1.get(i)).boxed().toList();
             genotypes.add(placeholder2);
             results.add(executorService.submit(() -> jumping.run(mapper.apply(placeholder2), engine.get()).firstAgentMaxRelativeJumpHeight()));
           }
@@ -165,7 +175,6 @@ public class Main {
       rigidsString.append(rigids[0][2] ? "r" : "s");
       rigidsString.append(".".repeat(2));
       rigidsString.append(rigids[3][2] ? "r" : "s");
-      return rigidsString.toString();
     } else if (shape == Shape.WORM) {
       boolean[][] rigids = new boolean[5][2];
       for (int i = 0; i < 10; ++i) {
@@ -187,7 +196,6 @@ public class Main {
       for (int i = 0; i < 5; ++i) {
         rigidsString.append(rigids[i][1] ? "r" : "s");
       }
-      return rigidsString.toString();
     } else if (shape == Shape.T) {
       boolean[][] rigids = new boolean[2][5];
       for (int i = 0; i < 10; ++i) {
@@ -203,9 +211,43 @@ public class Main {
         rigidsString.append(String.format(".%s%s.-", rigids[0][i] ? "r" : "s", rigids[1][i] ? "r" : "s"));
       }
       rigidsString.append(String.format("%s%s%ss", nOfRigids < 11 ? "s" : "r", rigids[0][4] ? "r" : "s", rigids[1][4] ? "r" : "s"));
-      return rigidsString.toString();
+    } else if (shape == Shape.PLUS) {
+      boolean[][] rigids = new boolean[6][6];
+      for (int i = 0; i < 36; ++i) {
+        rigids[i / 6][i % 6] = false;
+      }
+      for (int i = 0; i < nOfRigids && i < 6; ++i) {
+        rigids[i][2 + i % 2] = true;
+      }
+      for (int i = 0; i < nOfRigids - 6 && i < 2; ++i) {
+        rigids[2 + i % 2][i] = true;
+      }
+      for (int i = 0; i < nOfRigids - 8 && i < 2; ++i) {
+        rigids[2 + i % 2][5 - i] = true;
+      }
+      for (int i = 0; i < nOfRigids - 10 && i < 2; ++i) {
+        rigids[i][3 - i % 2] = true;
+      }
+      for (int i = 0; i < nOfRigids - 12 && i < 2; ++i) {
+        rigids[3 - i % 2][i] = true;
+      }
+      for (int i = 0; i < nOfRigids - 14 && i < 2; ++i) {
+        rigids[3 - i % 2][5 - i] = true;
+      }
+      for (int i = 0; i < nOfRigids - 16 && i < 2; ++i) {
+        rigids[5 - i][2 + i % 2] = true;
+      }
+      for (int i = 0; i < 2; ++i) {
+        rigidsString.append(String.format("..%s%s..-", rigids[i][2] ? "r" : "s", rigids[i][3] ? "r" : "s"));
+      }
+      for (int i = 2; i < 4; ++i) {
+        rigidsString.append(String.format("%s%s%s%s%s%s-", rigids[i][0] ? "r" : "s", rigids[i][1] ? "r" : "s",
+                rigids[i][2] ? "r" : "s", rigids[i][3] ? "r" : "s", rigids[i][4] ? "r" : "s", rigids[i][5] ? "r" : "s"));
+      }
+      rigidsString.append(String.format("..%s%s..-", rigids[4][2] ? "r" : "s", rigids[4][3] ? "r" : "s"));
+      rigidsString.append(String.format("..%s%s..", rigids[5][2] ? "r" : "s", rigids[5][3] ? "r" : "s"));
     }
-    return null;
+    return rigidsString.toString();
   }
 
   public static String serialize(List<Double> list) {
