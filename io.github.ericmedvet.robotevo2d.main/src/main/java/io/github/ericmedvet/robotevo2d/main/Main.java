@@ -44,10 +44,10 @@ public class Main {
   protected static final String noSensors = "sim.agent.vsr.sensorizingFunction.empty()";
 
   protected static final String standardSensors = "sim.agent.vsr.sensorizingFunction.directional(" +
-          "nSensors = [sim.sensor.ar(); sim.sensor.rv(a = 0.0); sim.sensor.rv(a = 90.0); sim.sensor.d(a = 90.0; r = 1.0)];" +
-          "eSensors = [sim.sensor.ar(); sim.sensor.rv(a = 0.0); sim.sensor.rv(a = 90.0); sim.sensor.d(a = 0.0; r = 1.0)];" +
-          "sSensors = [sim.sensor.ar(); sim.sensor.rv(a = 0.0); sim.sensor.rv(a = 90.0); sim.sensor.d(a = -90.0; r = 1.0)];" +
-          "wSensors = [sim.sensor.ar(); sim.sensor.rv(a = 0.0); sim.sensor.rv(a = 90.0); sim.sensor.d(a = 180.0; r = 1.0)];" +
+          "nSensors = [sim.sensor.ar(); sim.sensor.rv(a = 0.0); sim.sensor.rv(a = 90.0)];" +
+          "eSensors = [sim.sensor.ar(); sim.sensor.rv(a = 0.0); sim.sensor.rv(a = 90.0)];" +
+          "sSensors = [sim.sensor.ar(); sim.sensor.rv(a = 0.0); sim.sensor.rv(a = 90.0); sim.sensor.c()];" +
+          "wSensors = [sim.sensor.ar(); sim.sensor.rv(a = 0.0); sim.sensor.rv(a = 90.0)];" +
           "headSensors = []" +
           ")";
   protected static final String sin = "dynamicalSystem.numerical.sin(" +
@@ -71,31 +71,19 @@ public class Main {
   private enum Shape {BIPED, WORM, T, PLUS}
 
   public static void main(String[] args) throws IOException {
-    /*fixedControllerLandscape(locomotion, Shape.PLUS, 19,
-            noSensors, String.format(mlp, 1d), "FL_plus_locomotion_mlp.csv");
-    fixedControllerLandscape(jumping, Shape.PLUS, 19,
-            noSensors, String.format(mlp, 1d),"FL_plus_jumping_mlp.csv");*/
-    test();
-  }
-
-  public static void test() {
-    DistributedNumGridVSR robot = new DistributedNumGridVSR((GridBody) nb.build(
-            String.format(gridBody, "sim.agent.vsr.shape.worm(w = 2; h = 2)",
-                    "sim.agent.vsr.sensorizingFunction.directional(nSensors = [sim.sensor.d(a = 90.0; r = 1.0)]; eSensors = []; sSensors = []; wSensors = []; headSensors = [])")),
-            Grid.create(2, 2,
-                    (x, y) -> NumericalStatelessSystem.from(y == 1 ? 1 : 0, 1, (a, b) ->
-                    {
-                      if (y == 1) {
-                        System.out.println(b[0]);
-                        return new double[]{Math.sin(a) * (b[0])};
-                      } else {
-                        return new double[]{0d};
-                      }
-
-                    })),
-            0, false);
-    RealtimeViewer viewer = new RealtimeViewer(Drawers.basic().profiled());
-    locomotion.run(() -> robot, engine.get(), viewer);
+    int NOFRIGIDS;
+    for (Shape shape : Shape.values()) {
+      NOFRIGIDS = switch (shape) {
+        case BIPED -> 10;
+        case WORM -> 8;
+        case T -> 12;
+        case PLUS -> 19;
+      };
+      fixedControllerLandscape(locomotion, shape, NOFRIGIDS, standardSensors, String.format(mlp, 1d),
+              String.format("FL_%s_controller_mlp_locomotion.csv", shape.name().toLowerCase()));
+      fixedControllerLandscape(jumping, shape, NOFRIGIDS, standardSensors, String.format(mlp, 1d),
+              String.format("FL_%s_controller_mlp_jumping.csv", shape.name().toLowerCase()));
+    }
   }
 
   public static void fixedControllerLandscape(Task<Supplier<EmbodiedAgent>, Outcome> task,
