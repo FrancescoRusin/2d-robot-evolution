@@ -2,27 +2,18 @@ package io.github.ericmedvet.robotevo2d.main;
 
 import io.github.ericmedvet.jgea.experimenter.InvertibleMapper;
 import io.github.ericmedvet.jnb.core.NamedBuilder;
-import io.github.ericmedvet.jsdynsym.core.numerical.NumericalDynamicalSystem;
-import io.github.ericmedvet.jsdynsym.core.numerical.NumericalStatelessSystem;
 import io.github.ericmedvet.mrsim2d.core.EmbodiedAgent;
-import io.github.ericmedvet.mrsim2d.core.agents.gridvsr.CentralizedNumGridVSR;
-import io.github.ericmedvet.mrsim2d.core.agents.gridvsr.DistributedNumGridVSR;
-import io.github.ericmedvet.mrsim2d.core.agents.gridvsr.GridBody;
 import io.github.ericmedvet.mrsim2d.core.engine.Engine;
 import io.github.ericmedvet.mrsim2d.core.tasks.Outcome;
 import io.github.ericmedvet.mrsim2d.core.tasks.Task;
 import io.github.ericmedvet.mrsim2d.core.tasks.jumping.Jumping;
 import io.github.ericmedvet.mrsim2d.core.tasks.locomotion.Locomotion;
-import io.github.ericmedvet.mrsim2d.core.util.Grid;
-import io.github.ericmedvet.mrsim2d.viewer.Drawers;
-import io.github.ericmedvet.mrsim2d.viewer.RealtimeViewer;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
