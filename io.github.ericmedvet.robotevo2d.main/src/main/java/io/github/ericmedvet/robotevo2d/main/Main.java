@@ -2,12 +2,16 @@ package io.github.ericmedvet.robotevo2d.main;
 
 import io.github.ericmedvet.jgea.experimenter.InvertibleMapper;
 import io.github.ericmedvet.jnb.core.NamedBuilder;
+import io.github.ericmedvet.jnb.core.Param;
+import io.github.ericmedvet.mrsim2d.buildable.builders.Terrains;
 import io.github.ericmedvet.mrsim2d.core.EmbodiedAgent;
 import io.github.ericmedvet.mrsim2d.core.engine.Engine;
 import io.github.ericmedvet.mrsim2d.core.tasks.Outcome;
 import io.github.ericmedvet.mrsim2d.core.tasks.Task;
 import io.github.ericmedvet.mrsim2d.core.tasks.jumping.Jumping;
 import io.github.ericmedvet.mrsim2d.core.tasks.locomotion.Locomotion;
+import io.github.ericmedvet.mrsim2d.viewer.Drawers;
+import io.github.ericmedvet.mrsim2d.viewer.RealtimeViewer;
 
 import java.io.*;
 import java.util.*;
@@ -62,15 +66,24 @@ public class Main {
   private enum Shape {BIPED, WORM, T, PLUS}
 
   public static void main(String[] args) throws IOException {
-    int NOFRIGIDS;
+    /*int NOFRIGIDS;
     for (Shape shape : Shape.values()) {
-      fixedBodyLandscape(locomotion, shape, standardSensors, String.format("FL_%s_body_mlp_locomotion.csv", shape.name().toLowerCase()));
-      fixedBodyLandscape(jumping, shape, standardSensors, String.format("FL_%s_body_mlp_locomotion.csv", shape.name().toLowerCase()));
-    }
+      NOFRIGIDS = switch (shape) {
+        case BIPED -> 10;
+        case WORM -> 8;
+        case T -> 12;
+        case PLUS -> 19;
+      };
+      fixedControllerLandscape(locomotion, shape, NOFRIGIDS, standardSensors, String.format(mlp, 1),
+              String.format("FL_%s_controller_mlp_locomotion.csv", shape.name().toLowerCase()), false);
+      fixedControllerLandscape(jumping, shape, NOFRIGIDS, standardSensors, String.format(mlp, 1),
+              String.format("FL_%s_controller_mlp_jumping.csv", shape.name().toLowerCase()), false);
+    }*/
+    test();
   }
 
-  public static void fixedControllerLandscape(Task<Supplier<EmbodiedAgent>, Outcome> task,
-                                              Shape shape, int nOfShapes, String sensors, String controller, String fileName) throws IOException {
+  public static void fixedControllerLandscape(Task<Supplier<EmbodiedAgent>, Outcome> task, Shape shape, int nOfShapes, String sensors,
+                                              String controller, String fileName, boolean saveG) throws IOException {
     String actualRobotMapper = String.format(robotMapper, String.format(gridBody, "sim.agent.vsr.shape.free(s = \"%s\")", sensors), controller);
     Future<Double> baseResult;
     List<List<Double>> genotypes;
@@ -105,11 +118,18 @@ public class Main {
           }
         }
         try {
-          writer.write(String.format("%d;%d;%d;%s;", rigids, point, -1, serialize(baseGenotype)) + baseResult.get() + "\n");
-          for (int counter = 0; counter < results.size(); ++counter) {
-            writer.write(
-                    String.format("%d;%d;%d;%s;", rigids, point, counter / FRAGMENTATIONS, serialize(genotypes.get(counter))) +
-                            results.get(counter).get() + "\n");
+          if (saveG) {
+            writer.write(String.format("%d;%d;%d;%s;", rigids, point, -1, serialize(baseGenotype)) + baseResult.get() + "\n");
+            for (int counter = 0; counter < results.size(); ++counter) {
+              writer.write(
+                      String.format("%d;%d;%d;%s;", rigids, point, counter / FRAGMENTATIONS, serialize(genotypes.get(counter))) +
+                              results.get(counter).get() + "\n");
+            }
+          } else {
+            writer.write(String.format("%d;%d;%d;", rigids, point, -1) + baseResult.get() + "\n");
+            for (int counter = 0; counter < results.size(); ++counter) {
+              writer.write(String.format("%d;%d;%d;", rigids, point, counter / FRAGMENTATIONS) + results.get(counter).get() + "\n");
+            }
           }
         } catch (Exception e) {
           e.printStackTrace();
@@ -121,7 +141,7 @@ public class Main {
   }
 
   public static void fixedBodyLandscape(Task<Supplier<EmbodiedAgent>, Outcome> task,
-                                              Shape shape, String sensors, String fileName) throws IOException {
+                                        Shape shape, String sensors, String fileName, boolean saveG) throws IOException {
     String actualRobotMapper = String.format(robotMapper, String.format(gridBody,
             String.format("sim.agent.vsr.shape.free(s = \"%s\")", buildStringShape(shape, 0)), sensors), mlp);
     Future<Double> baseResult;
@@ -157,11 +177,20 @@ public class Main {
           }
         }
         try {
-          writer.write(String.format("%d;%d;%d;%s;", neurons, point, -1, serialize(baseGenotype)) + baseResult.get() + "\n");
-          for (int counter = 0; counter < results.size(); ++counter) {
-            writer.write(
-                    String.format("%d;%d;%d;%s;", neurons, point, counter / FRAGMENTATIONS, serialize(genotypes.get(counter))) +
-                            results.get(counter).get() + "\n");
+          if (saveG) {
+            writer.write(String.format("%d;%d;%d;%s;", neurons, point, -1, serialize(baseGenotype)) + baseResult.get() + "\n");
+            for (int counter = 0; counter < results.size(); ++counter) {
+              writer.write(
+                      String.format("%d;%d;%d;%s;", neurons, point, counter / FRAGMENTATIONS, serialize(genotypes.get(counter))) +
+                              results.get(counter).get() + "\n");
+            }
+          } else {
+            writer.write(String.format("%d;%d;%d;", neurons, point, -1) + baseResult.get() + "\n");
+            for (int counter = 0; counter < results.size(); ++counter) {
+              writer.write(
+                      String.format("%d;%d;%d;", neurons, point, counter / FRAGMENTATIONS) +
+                              results.get(counter).get() + "\n");
+            }
           }
         } catch (Exception e) {
           e.printStackTrace();
@@ -286,5 +315,23 @@ public class Main {
     } catch (IOException | ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static void test() throws IOException {
+    String actualRobotMapper = String.format(robotMapper, String.format(gridBody, "sim.agent.vsr.shape.free(s = \"%s\")", noSensors), sin);
+    InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
+            (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(Shape.BIPED, 0)));
+    int attempt = 0;
+    double[] genotype = new double[20];
+    genotype[attempt] = 0;
+    genotype[attempt + 1] = 1;
+    for (int i = 0; i < attempt; ++i) {
+      genotype[i] = 0;
+    }
+    for (int i = attempt + 2; i < 20; ++i) {
+      genotype[i] = 0;
+    }
+    final Supplier<EmbodiedAgent> provider = mapper.apply(Arrays.stream(genotype).boxed().toList());
+    locomotion.run(provider, engine.get(), new RealtimeViewer(Drawers.basic().profiled()));
   }
 }
