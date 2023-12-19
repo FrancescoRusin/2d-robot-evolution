@@ -2,8 +2,6 @@ package io.github.ericmedvet.robotevo2d.main;
 
 import io.github.ericmedvet.jgea.experimenter.InvertibleMapper;
 import io.github.ericmedvet.jnb.core.NamedBuilder;
-import io.github.ericmedvet.jnb.core.Param;
-import io.github.ericmedvet.mrsim2d.buildable.builders.Terrains;
 import io.github.ericmedvet.mrsim2d.core.EmbodiedAgent;
 import io.github.ericmedvet.mrsim2d.core.engine.Engine;
 import io.github.ericmedvet.mrsim2d.core.tasks.Outcome;
