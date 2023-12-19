@@ -47,7 +47,7 @@ public class Main {
           ")";
   protected static final String sin = "dynamicalSystem.numerical.sin(" +
           "p = s.range(min = -1.57; max = 1.57);" +
-          "f = s.range(min = 0.3; max = 2);" +
+          "f = s.range(min = -2; max = 2);" +
           "a = s.range(min = 1; max = 1);" +
           "b = s.range(min = 1; max = 1)" +
           ")";
@@ -321,15 +321,19 @@ public class Main {
     String actualRobotMapper = String.format(robotMapper, String.format(gridBody, "sim.agent.vsr.shape.free(s = \"%s\")", noSensors), sin);
     InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
             (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(Shape.BIPED, 0)));
-    int attempt = 0;
+    int attempt = 2;
     double[] genotype = new double[20];
-    genotype[attempt] = 0;
-    genotype[attempt + 1] = 1;
+    genotype[attempt] = 1;
+    genotype[attempt + 1] = 0;
     for (int i = 0; i < attempt; ++i) {
       genotype[i] = 0;
     }
     for (int i = attempt + 2; i < 20; ++i) {
       genotype[i] = 0;
+    }
+    for (int i = 0; i < 20; ++i) {
+      System.out.print(genotype[i]);
+      System.out.print(" ");
     }
     final Supplier<EmbodiedAgent> provider = mapper.apply(Arrays.stream(genotype).boxed().toList());
     locomotion.run(provider, engine.get(), new RealtimeViewer(Drawers.basic().profiled()));

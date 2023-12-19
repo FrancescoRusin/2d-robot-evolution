@@ -57,6 +57,21 @@
             <version>${jgea.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.github.ericmedvet</groupId>
+            <artifactId>jsdynsym.buildable</artifactId>
+            <version>${jsdynsym.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ericmedvet</groupId>
+            <artifactId>jsdynsym.core</artifactId>
+            <version>${jsdynsym.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.ericmedvet</groupId>
+            <artifactId>jsdynsym.problem</artifactId>
+            <version>${jsdynsym.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
             <version>1.82</version>
