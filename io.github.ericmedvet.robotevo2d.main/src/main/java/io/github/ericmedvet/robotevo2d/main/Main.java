@@ -45,7 +45,7 @@ public class Main {
           ")";
   protected static final String sin = "dynamicalSystem.numerical.sin(" +
           "p = s.range(min = -1.57; max = 1.57);" +
-          "f = s.range(min = -2; max = 2);" +
+          "f = s.range(min = 0; max = 2);" +
           "a = s.range(min = 1; max = 1);" +
           "b = s.range(min = 1; max = 1)" +
           ")";
@@ -67,17 +67,16 @@ public class Main {
     /*int NOFRIGIDS;
     for (Shape shape : Shape.values()) {
       NOFRIGIDS = switch (shape) {
-        case BIPED -> 10;
-        case WORM -> 8;
-        case T -> 12;
-        case PLUS -> 19;
+        case BIPED -> 7;
+        case WORM -> 7;
+        case T -> 9;
+        case PLUS -> 17;
       };
       fixedControllerLandscape(locomotion, shape, NOFRIGIDS, standardSensors, String.format(mlp, 1),
               String.format("FL_%s_controller_mlp_locomotion.csv", shape.name().toLowerCase()), false);
       fixedControllerLandscape(jumping, shape, NOFRIGIDS, standardSensors, String.format(mlp, 1),
               String.format("FL_%s_controller_mlp_jumping.csv", shape.name().toLowerCase()), false);
     }*/
-    test();
   }
 
   public static void fixedControllerLandscape(Task<Supplier<EmbodiedAgent>, Outcome> task, Shape shape, int nOfShapes, String sensors,
@@ -201,97 +200,103 @@ public class Main {
 
   public static String buildStringShape(Shape shape, int nOfRigids) {
     StringBuilder rigidsString = new StringBuilder();
-    if (shape == Shape.BIPED) {
-      boolean[][] rigids = new boolean[4][3];
-      for (int i = 0; i < 12; ++i) {
-        rigids[i / 3][i % 3] = false;
-      }
-      for (int i = 0; i < nOfRigids && i < 6; ++i) {
-        rigids[3 * (i % 2)][2 - i / 2] = true;
-      }
-      for (int i = 0; i < nOfRigids - 6 && i < 4; ++i) {
-        rigids[1 + (i % 2)][i / 2] = true;
-      }
-      for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 4; ++j) {
-          rigidsString.append(rigids[j][i] ? "r" : "s");
+    boolean[][] rigids;
+    switch (shape) {
+      case BIPED:
+        rigids = new boolean[4][3];
+        for (int i = 0; i < 12; ++i) {
+          rigids[i / 3][i % 3] = false;
+        }
+        for (int i = 0; i < nOfRigids && i < 6; ++i) {
+          rigids[3 * (i % 2)][2 - i / 2] = true;
+        }
+        for (int i = 0; i < nOfRigids - 6 && i < 4; ++i) {
+          rigids[1 + (i % 2)][i % 2] = true;
+        }
+        for (int i = 0; i < 2; ++i) {
+          for (int j = 0; j < 4; ++j) {
+            rigidsString.append(rigids[j][i] ? "r" : "s");
+          }
+          rigidsString.append("-");
+        }
+        rigidsString.append(rigids[0][2] ? "r" : "s");
+        rigidsString.append(".".repeat(2));
+        rigidsString.append(rigids[3][2] ? "r" : "s");
+        break;
+      case WORM:
+        rigids = new boolean[5][2];
+        for (int i = 0; i < 10; ++i) {
+          rigids[i / 2][i % 2] = false;
+        }
+        for (int i = 0; i < nOfRigids && i < 5; ++i) {
+          rigids[i][i % 2] = true;
+        }
+        if (nOfRigids > 5) {
+          rigids[1][0] = true;
+        }
+        if (nOfRigids > 6) {
+          rigids[2][1] = true;
+        }
+        for (int i = 0; i < 5; ++i) {
+          rigidsString.append(rigids[i][0] ? "r" : "s");
         }
         rigidsString.append("-");
-      }
-      rigidsString.append(rigids[0][2] ? "r" : "s");
-      rigidsString.append(".".repeat(2));
-      rigidsString.append(rigids[3][2] ? "r" : "s");
-    } else if (shape == Shape.WORM) {
-      boolean[][] rigids = new boolean[5][2];
-      for (int i = 0; i < 10; ++i) {
-        rigids[i / 2][i % 2] = false;
-      }
-      for (int i = 0; i < nOfRigids && i < 5; ++i) {
-        rigids[i][i % 2] = true;
-      }
-      if (nOfRigids > 5) {
-        rigids[1][0] = true;
-      }
-      if (nOfRigids > 6) {
-        rigids[2][1] = true;
-      }
-      for (int i = 0; i < 5; ++i) {
-        rigidsString.append(rigids[i][0] ? "r" : "s");
-      }
-      rigidsString.append("-");
-      for (int i = 0; i < 5; ++i) {
-        rigidsString.append(rigids[i][1] ? "r" : "s");
-      }
-    } else if (shape == Shape.T) {
-      boolean[][] rigids = new boolean[2][5];
-      for (int i = 0; i < 10; ++i) {
-        rigids[i / 5][i % 5] = false;
-      }
-      for (int i = 0; i < nOfRigids && i < 5; ++i) {
-        rigids[i % 2][i] = true;
-      }
-      for (int i = 0; i < nOfRigids - 5 && i < 5; ++i) {
-        rigids[1 - i % 2][i] = true;
-      }
-      for (int i = 0; i < 4; ++i) {
-        rigidsString.append(String.format(".%s%s.-", rigids[0][i] ? "r" : "s", rigids[1][i] ? "r" : "s"));
-      }
-      rigidsString.append(String.format("%s%s%ss", nOfRigids < 11 ? "s" : "r", rigids[0][4] ? "r" : "s", rigids[1][4] ? "r" : "s"));
-    } else if (shape == Shape.PLUS) {
-      boolean[][] rigids = new boolean[6][6];
-      for (int i = 0; i < 36; ++i) {
-        rigids[i / 6][i % 6] = false;
-      }
-      for (int i = 0; i < nOfRigids && i < 6; ++i) {
-        rigids[i][2 + i % 2] = true;
-      }
-      for (int i = 0; i < nOfRigids - 6 && i < 2; ++i) {
-        rigids[2 + i % 2][i] = true;
-      }
-      for (int i = 0; i < nOfRigids - 8 && i < 2; ++i) {
-        rigids[2 + i % 2][5 - i] = true;
-      }
-      for (int i = 0; i < nOfRigids - 10 && i < 2; ++i) {
-        rigids[i][3 - i % 2] = true;
-      }
-      for (int i = 0; i < nOfRigids - 12 && i < 2; ++i) {
-        rigids[3 - i % 2][i] = true;
-      }
-      for (int i = 0; i < nOfRigids - 14 && i < 2; ++i) {
-        rigids[3 - i % 2][5 - i] = true;
-      }
-      for (int i = 0; i < nOfRigids - 16 && i < 2; ++i) {
-        rigids[5 - i][2 + i % 2] = true;
-      }
-      for (int i = 0; i < 2; ++i) {
-        rigidsString.append(String.format("..%s%s..-", rigids[i][2] ? "r" : "s", rigids[i][3] ? "r" : "s"));
-      }
-      for (int i = 2; i < 4; ++i) {
-        rigidsString.append(String.format("%s%s%s%s%s%s-", rigids[i][0] ? "r" : "s", rigids[i][1] ? "r" : "s",
-                rigids[i][2] ? "r" : "s", rigids[i][3] ? "r" : "s", rigids[i][4] ? "r" : "s", rigids[i][5] ? "r" : "s"));
-      }
-      rigidsString.append(String.format("..%s%s..-", rigids[4][2] ? "r" : "s", rigids[4][3] ? "r" : "s"));
-      rigidsString.append(String.format("..%s%s..", rigids[5][2] ? "r" : "s", rigids[5][3] ? "r" : "s"));
+        for (int i = 0; i < 5; ++i) {
+          rigidsString.append(rigids[i][1] ? "r" : "s");
+        }
+        break;
+      case T:
+        rigids = new boolean[2][5];
+        for (int i = 0; i < 10; ++i) {
+          rigids[i / 5][i % 5] = false;
+        }
+        for (int i = 0; i < nOfRigids && i < 5; ++i) {
+          rigids[i % 2][i] = true;
+        }
+        for (int i = 0; i < nOfRigids - 5 && i < 5; ++i) {
+          rigids[1 - i % 2][i] = true;
+        }
+        for (int i = 0; i < 4; ++i) {
+          rigidsString.append(String.format(".%s%s.-", rigids[0][i] ? "r" : "s", rigids[1][i] ? "r" : "s"));
+        }
+        rigidsString.append(String.format("%s%s%ss", nOfRigids < 11 ? "s" : "r", rigids[0][4] ? "r" : "s", rigids[1][4] ? "r" : "s"));
+        break;
+      case PLUS:
+        rigids = new boolean[6][6];
+        for (int i = 0; i < 36; ++i) {
+          rigids[i / 6][i % 6] = false;
+        }
+        for (int i = 0; i < nOfRigids && i < 6; ++i) {
+          rigids[i][2 + i % 2] = true;
+        }
+        for (int i = 0; i < nOfRigids - 6 && i < 2; ++i) {
+          rigids[2 + i % 2][i] = true;
+        }
+        for (int i = 0; i < nOfRigids - 8 && i < 2; ++i) {
+          rigids[2 + i % 2][5 - i] = true;
+        }
+        for (int i = 0; i < nOfRigids - 10 && i < 2; ++i) {
+          rigids[i][3 - i % 2] = true;
+        }
+        for (int i = 0; i < nOfRigids - 12 && i < 2; ++i) {
+          rigids[3 - i % 2][i] = true;
+        }
+        for (int i = 0; i < nOfRigids - 14 && i < 2; ++i) {
+          rigids[3 - i % 2][5 - i] = true;
+        }
+        for (int i = 0; i < nOfRigids - 16 && i < 2; ++i) {
+          rigids[5 - i][2 + i % 2] = true;
+        }
+        for (int i = 0; i < 2; ++i) {
+          rigidsString.append(String.format("..%s%s..-", rigids[i][2] ? "r" : "s", rigids[i][3] ? "r" : "s"));
+        }
+        for (int i = 2; i < 4; ++i) {
+          rigidsString.append(String.format("%s%s%s%s%s%s-", rigids[i][0] ? "r" : "s", rigids[i][1] ? "r" : "s",
+                  rigids[i][2] ? "r" : "s", rigids[i][3] ? "r" : "s", rigids[i][4] ? "r" : "s", rigids[i][5] ? "r" : "s"));
+        }
+        rigidsString.append(String.format("..%s%s..-", rigids[4][2] ? "r" : "s", rigids[4][3] ? "r" : "s"));
+        rigidsString.append(String.format("..%s%s..", rigids[5][2] ? "r" : "s", rigids[5][3] ? "r" : "s"));
+        break;
     }
     return rigidsString.toString();
   }
@@ -315,25 +320,30 @@ public class Main {
     }
   }
 
-  public static void test() throws IOException {
-    String actualRobotMapper = String.format(robotMapper, String.format(gridBody, "sim.agent.vsr.shape.free(s = \"%s\")", noSensors), sin);
-    InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
-            (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(Shape.BIPED, 0)));
-    int attempt = 2;
-    double[] genotype = new double[20];
-    genotype[attempt] = 1;
-    genotype[attempt + 1] = 0;
-    for (int i = 0; i < attempt; ++i) {
-      genotype[i] = 0;
+  public static double[] adjustParams(double[] params, String stringShape) {
+    int nOfVoxels = stringShape.replace(".", "").replace("-", "").length();
+    int nOfSofts = stringShape.replace(".", "").replace("-", "").replace("r", "").length();
+    double[] adjustedParams = new double[nOfVoxels * 2];
+    int fullArrayIndex = 0;
+    int conditionalIndex = 0;
+    String[] splitStringShape = stringShape.split("-");
+    for (int i = 0; i < splitStringShape.length * splitStringShape[0].length(); ++i) {
+      switch (splitStringShape[splitStringShape.length - i % splitStringShape.length - 1].charAt(i / splitStringShape.length)) {
+        case 'r':
+          adjustedParams[fullArrayIndex] = 0;
+          adjustedParams[fullArrayIndex + nOfVoxels] = 0;
+          ++fullArrayIndex;
+          break;
+        case 's':
+          adjustedParams[fullArrayIndex] = params[conditionalIndex];
+          adjustedParams[fullArrayIndex + nOfVoxels] = params[conditionalIndex + nOfSofts];
+          ++conditionalIndex;
+          ++fullArrayIndex;
+          System.out.println(String.format("%d %d", splitStringShape.length - i % splitStringShape.length - 1, i / splitStringShape.length));
+          break;
+        default:
+      }
     }
-    for (int i = attempt + 2; i < 20; ++i) {
-      genotype[i] = 0;
-    }
-    for (int i = 0; i < 20; ++i) {
-      System.out.print(genotype[i]);
-      System.out.print(" ");
-    }
-    final Supplier<EmbodiedAgent> provider = mapper.apply(Arrays.stream(genotype).boxed().toList());
-    locomotion.run(provider, engine.get(), new RealtimeViewer(Drawers.basic().profiled()));
+    return adjustedParams;
   }
 }
