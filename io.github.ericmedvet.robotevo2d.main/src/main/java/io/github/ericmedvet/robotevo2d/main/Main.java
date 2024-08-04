@@ -1,19 +1,29 @@
 package io.github.ericmedvet.robotevo2d.main;
 
 import io.github.ericmedvet.jgea.experimenter.InvertibleMapper;
+import io.github.ericmedvet.jnb.core.Builder;
 import io.github.ericmedvet.jnb.core.NamedBuilder;
+import io.github.ericmedvet.jnb.core.Param;
 import io.github.ericmedvet.mrsim2d.core.EmbodiedAgent;
 import io.github.ericmedvet.mrsim2d.core.engine.Engine;
 import io.github.ericmedvet.mrsim2d.core.tasks.Outcome;
 import io.github.ericmedvet.mrsim2d.core.tasks.Task;
 import io.github.ericmedvet.mrsim2d.core.tasks.jumping.Jumping;
 import io.github.ericmedvet.mrsim2d.core.tasks.locomotion.Locomotion;
+import io.github.ericmedvet.mrsim2d.viewer.Drawer;
+import io.github.ericmedvet.mrsim2d.viewer.Drawers;
+import io.github.ericmedvet.mrsim2d.viewer.FramesImageBuilder;
+import io.github.ericmedvet.mrsim2d.viewer.RealtimeViewer;
+import io.github.ericmedvet.robotevo2d.main.builders.Misc;
+import io.github.ericmedvet.robotevo2d.main.builders.PlayConsumers;
 
+import javax.imageio.ImageIO;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -62,29 +72,53 @@ public class Main {
   private enum Shape {BIPED, WORM, T, PLUS}
 
   public static void main(String[] args) throws IOException {
-    int NOFRIGIDS;
-    for (Shape shape : Shape.values()) {
-      NOFRIGIDS = switch (shape) {
-        case BIPED, WORM -> 7;
-        case T -> 9;
-        case PLUS -> 17;
-      };
-      switch (args[0]) {
-        case "loc":
-          System.out.println("Executing locomotion experiment");
-          sinControllerLandscape(locomotion, shape, NOFRIGIDS, noSensors,
-                  String.format("FL_%s_controller_sin_locomotion_refactored.csv", shape.name().toLowerCase()), false);
-          break;
-        case "jmp":
-          System.out.println("Executing jumping experiment");
-          sinControllerLandscape(jumping, shape, NOFRIGIDS, noSensors,
-                  String.format("FL_%s_controller_sin_jumping_refactored.csv", shape.name().toLowerCase()), false);
-          break;
+    /*int NOFRIGIDS;
+    for (String arg : args) {
+      for (Shape shape : Shape.values()) {
+        NOFRIGIDS = switch (shape) {
+          case BIPED, WORM -> 7;
+          case T -> 9;
+          case PLUS -> 17;
+        };
+        switch (arg) {
+          case "loc":
+            System.out.printf("Executing locomotion experiment for %s\n", shape.name());
+            sinControllerLandscape(locomotion, Outcome::firstAgentXVelocity, shape, NOFRIGIDS, noSensors,
+                    String.format("FL_%s_controller_sin_locomotion_refactored.csv", shape.name().toLowerCase()), false);
+            break;
+          case "jmp":
+            System.out.printf("Executing jumping experiment for %s\n", shape.name());
+            sinControllerLandscape(jumping, Outcome::firstAgentMaxY, shape, NOFRIGIDS, noSensors,
+                    String.format("FL_%s_controller_sin_jumping_refactored.csv", shape.name().toLowerCase()), false);
+            break;
+        }
       }
+    }*/
+    robotsDraw();
+  }
+
+  public static void robotsDraw() throws IOException {
+    List<InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>> mappers = new ArrayList<>();
+    for (int i = 0; i < 10; ++i) {
+      mappers.add((InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format("er.mapper.numericalParametrizedHomoBrains(target = sim.agent.centralizedNumGridVSR(body = sim.agent.vsr.gridBody(shape = sim.agent.vsr.shape.free(s = \"%s\"); sensorizingFunction = sim.agent.vsr.sensorizingFunction.empty()); function = %s))",
+              buildStringShape(Shape.T, i), sin)));
+    }
+    List<Double> genotype = new ArrayList<>();
+    for (int i = 0; i < 24; ++i) {
+      genotype.add(-1d);
+    }
+    FramesImageBuilder drawer;
+    for (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper : mappers) {
+      drawer = new FramesImageBuilder(
+              Misc.FILE_VIDEO_W, Misc.FILE_VIDEO_H, 1, 2, .1, FramesImageBuilder.Direction.HORIZONTAL, true,
+              ((Function<String, Drawer>) nb.build("sim.drawer(miniWorld = false; miniAgents = NONE; engineProfiling = false; actions = false; nfc = false)")).apply(""));
+      final int parameters = mapper.exampleInput().size();
+      locomotion.run(mapper.apply(genotype), engine.get(), drawer);
+      ImageIO.write(drawer.get(), "png", new File("t_%d_rigids.png".formatted(mappers.indexOf(mapper))));
     }
   }
 
-  public static void sinControllerLandscape(Task<Supplier<EmbodiedAgent>, Outcome> task, Shape shape, int maxNOfRigids, String sensors,
+  public static void sinControllerLandscape(Task<Supplier<EmbodiedAgent>, Outcome> task, Function<Outcome, Double> fitness, Shape shape, int maxNOfRigids, String sensors,
                                             String fileName, boolean saveG) throws IOException {
     String actualRobotMapper = String.format(robotMapper, String.format(gridBody, "sim.agent.vsr.shape.free(s = \"%s\")", sensors), sin);
     Future<Double> baseResult;
@@ -112,7 +146,7 @@ public class Main {
         genotypes = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
         results = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
         baseResult = executorService.submit(() ->
-                task.run(mapper.apply(Arrays.stream(sinCAdjustParams(baseGenotype, stringShape)).boxed().toList()), engine.get()).firstAgentXVelocity());
+                fitness.apply(task.run(mapper.apply(Arrays.stream(sinCAdjustParams(baseGenotype, stringShape)).boxed().toList()), engine.get())));
         for (int trial = 0; trial < NOFTRIALS; ++trial) {
           double[] randomVector = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextGaussian()).toArray();
           double norm = Math.sqrt(Arrays.stream(randomVector).boxed().mapToDouble(i -> Math.pow(i, 2)).sum());
@@ -127,7 +161,7 @@ public class Main {
             }
             genotypes.add(placeholder);
             results.add(executorService.submit(
-                    () -> task.run(mapper.apply(Arrays.stream(sinCAdjustParams(placeholder, stringShape)).boxed().toList()), engine.get()).firstAgentXVelocity()));
+                    () -> fitness.apply(task.run(mapper.apply(Arrays.stream(sinCAdjustParams(placeholder, stringShape)).boxed().toList()), engine.get()))));
           }
         }
         try {
@@ -142,67 +176,6 @@ public class Main {
             writer.write(String.format("%d;%d;%d;", rigids, point, -1) + baseResult.get() + "\n");
             for (int counter = 0; counter < results.size(); ++counter) {
               writer.write(String.format("%d;%d;%d;", rigids, point, counter / FRAGMENTATIONS) + results.get(counter).get() + "\n");
-            }
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    writer.close();
-    executorService.shutdown();
-  }
-
-  public static void fixedBodyLandscape(Task<Supplier<EmbodiedAgent>, Outcome> task,
-                                        Shape shape, String sensors, String fileName, boolean saveG) throws IOException {
-    String actualRobotMapper = String.format(robotMapper, String.format(gridBody,
-            String.format("sim.agent.vsr.shape.free(s = \"%s\")", buildStringShape(shape, 0)), sensors), mlp);
-    Future<Double> baseResult;
-    List<List<Double>> genotypes;
-    List<Future<Double>> results;
-    final Random rg = new Random();
-    final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    final FileWriter writer = new FileWriter(fileName);
-    writer.write("rigids;point;segment;genotype;fitness\n");
-    final double SEGMENTLENGTH = 0.5;
-    final int NOFPOINTS = 20;
-    final int NOFTRIALS = 20;
-    final int FRAGMENTATIONS = 500;
-    for (int neurons = 1; neurons < 11; ++neurons) {
-      InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
-              (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, neurons / 2d));
-      int NOFPARAMS = mapper.exampleInput().size();
-      for (int point = 0; point < NOFPOINTS; ++point) {
-        List<Double> baseGenotype = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextDouble(-1, 1)).boxed().toList();
-        genotypes = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
-        results = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
-        baseResult = executorService.submit(() -> task.run(mapper.apply(baseGenotype), engine.get()).firstAgentXVelocity());
-        for (int trial = 0; trial < NOFTRIALS; ++trial) {
-          List<Double> randomVector = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextGaussian()).boxed().toList();
-          double norm = Math.sqrt(randomVector.stream().mapToDouble(i -> Math.pow(i, 2)).sum());
-          randomVector = randomVector.stream().mapToDouble(i -> SEGMENTLENGTH * i / norm).boxed().toList();
-          for (int iter = 1; iter < FRAGMENTATIONS + 1; ++iter) {
-            double tick = iter / (double) FRAGMENTATIONS;
-            List<Double> placeholder1 = new ArrayList<>(randomVector);
-            List<Double> placeholder2 = IntStream.range(0, NOFPARAMS).mapToDouble(i -> baseGenotype.get(i) + tick * placeholder1.get(i)).boxed().toList();
-            genotypes.add(placeholder2);
-            results.add(executorService.submit(() -> task.run(mapper.apply(placeholder2), engine.get()).firstAgentXVelocity()));
-          }
-        }
-        try {
-          if (saveG) {
-            writer.write(String.format("%d;%d;%d;%s;", neurons, point, -1, serialize(baseGenotype)) + baseResult.get() + "\n");
-            for (int counter = 0; counter < results.size(); ++counter) {
-              writer.write(
-                      String.format("%d;%d;%d;%s;", neurons, point, counter / FRAGMENTATIONS, serialize(genotypes.get(counter))) +
-                              results.get(counter).get() + "\n");
-            }
-          } else {
-            writer.write(String.format("%d;%d;%d;", neurons, point, -1) + baseResult.get() + "\n");
-            for (int counter = 0; counter < results.size(); ++counter) {
-              writer.write(
-                      String.format("%d;%d;%d;", neurons, point, counter / FRAGMENTATIONS) +
-                              results.get(counter).get() + "\n");
             }
           }
         } catch (Exception e) {
