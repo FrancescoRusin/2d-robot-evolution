@@ -1,9 +1,7 @@
 package io.github.ericmedvet.robotevo2d.main;
 
 import io.github.ericmedvet.jgea.experimenter.InvertibleMapper;
-import io.github.ericmedvet.jnb.core.Builder;
 import io.github.ericmedvet.jnb.core.NamedBuilder;
-import io.github.ericmedvet.jnb.core.Param;
 import io.github.ericmedvet.mrsim2d.core.EmbodiedAgent;
 import io.github.ericmedvet.mrsim2d.core.engine.Engine;
 import io.github.ericmedvet.mrsim2d.core.tasks.Outcome;
@@ -11,11 +9,8 @@ import io.github.ericmedvet.mrsim2d.core.tasks.Task;
 import io.github.ericmedvet.mrsim2d.core.tasks.jumping.Jumping;
 import io.github.ericmedvet.mrsim2d.core.tasks.locomotion.Locomotion;
 import io.github.ericmedvet.mrsim2d.viewer.Drawer;
-import io.github.ericmedvet.mrsim2d.viewer.Drawers;
 import io.github.ericmedvet.mrsim2d.viewer.FramesImageBuilder;
-import io.github.ericmedvet.mrsim2d.viewer.RealtimeViewer;
 import io.github.ericmedvet.robotevo2d.main.builders.Misc;
-import io.github.ericmedvet.robotevo2d.main.builders.PlayConsumers;
 
 import javax.imageio.ImageIO;
 import java.io.*;
@@ -72,29 +67,39 @@ public class Main {
   private enum Shape {BIPED, WORM, T, PLUS}
 
   public static void main(String[] args) throws IOException {
-    /*int NOFRIGIDS;
+    int NOFRIGIDS;
     for (String arg : args) {
+      String[] argSplit = arg.split("-");
       for (Shape shape : Shape.values()) {
         NOFRIGIDS = switch (shape) {
           case BIPED, WORM -> 7;
           case T -> 9;
           case PLUS -> 17;
         };
-        switch (arg) {
+        switch (argSplit[1]) {
           case "loc":
-            System.out.printf("Executing locomotion experiment for %s\n", shape.name());
-            sinControllerLandscape(locomotion, Outcome::firstAgentXVelocity, shape, NOFRIGIDS, noSensors,
-                    String.format("FL_%s_controller_sin_locomotion_refactored.csv", shape.name().toLowerCase()), false);
+            System.out.printf("Executing %s locomotion experiment for %s\n", argSplit[0], shape.name());
+            if (argSplit[0].equals("sin")) {
+              sinControllerLandscape(locomotion, Outcome::firstAgentXVelocity, shape, NOFRIGIDS, noSensors,
+                      String.format("FL_%s_controller_sin_locomotion_refactored.csv", shape.name().toLowerCase()), false);
+            } else if (argSplit[0].equals("mlp")) {
+              mlpControllerLandscape(locomotion, Outcome::firstAgentXVelocity, shape, NOFRIGIDS, standardSensors,
+                      String.format("FL_%s_controller_mlp_locomotion_refactored.csv", shape.name().toLowerCase()), false);
+            }
             break;
           case "jmp":
-            System.out.printf("Executing jumping experiment for %s\n", shape.name());
-            sinControllerLandscape(jumping, Outcome::firstAgentMaxY, shape, NOFRIGIDS, noSensors,
-                    String.format("FL_%s_controller_sin_jumping_refactored.csv", shape.name().toLowerCase()), false);
+            System.out.printf("Executing %s jumping experiment for %s\n", argSplit[0], shape.name());
+            if (argSplit[0].equals("sin")) {
+              sinControllerLandscape(jumping, Outcome::firstAgentMaxY, shape, NOFRIGIDS, noSensors,
+                      String.format("FL_%s_controller_sin_jumping_refactored.csv", shape.name().toLowerCase()), false);
+            } else if (argSplit[0].equals("mlp")) {
+              mlpControllerLandscape(jumping, Outcome::firstAgentMaxY, shape, NOFRIGIDS, standardSensors,
+                      String.format("FL_%s_controller_mlp_jumping_refactored.csv", shape.name().toLowerCase()), false);
+            }
             break;
         }
       }
-    }*/
-    robotsDraw();
+    }
   }
 
   public static void robotsDraw() throws IOException {
@@ -162,6 +167,75 @@ public class Main {
             genotypes.add(placeholder);
             results.add(executorService.submit(
                     () -> fitness.apply(task.run(mapper.apply(Arrays.stream(sinCAdjustParams(placeholder, stringShape)).boxed().toList()), engine.get()))));
+          }
+        }
+        try {
+          if (saveG) {
+            writer.write(String.format("%d;%d;%d;%s;", rigids, point, -1, serialize(Arrays.stream(baseGenotype).boxed().toList())) + baseResult.get() + "\n");
+            for (int counter = 0; counter < results.size(); ++counter) {
+              writer.write(
+                      String.format("%d;%d;%d;%s;", rigids, point, counter / FRAGMENTATIONS, serialize(Arrays.stream(genotypes.get(counter)).boxed().toList())) +
+                              results.get(counter).get() + "\n");
+            }
+          } else {
+            writer.write(String.format("%d;%d;%d;", rigids, point, -1) + baseResult.get() + "\n");
+            for (int counter = 0; counter < results.size(); ++counter) {
+              writer.write(String.format("%d;%d;%d;", rigids, point, counter / FRAGMENTATIONS) + results.get(counter).get() + "\n");
+            }
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    writer.close();
+    executorService.shutdown();
+  }
+
+  public static void mlpControllerLandscape(Task<Supplier<EmbodiedAgent>, Outcome> task, Function<Outcome, Double> fitness, Shape shape, int maxNOfRigids, String sensors,
+                                            String fileName, boolean saveG) throws IOException {
+    String actualRobotMapper = String.format(robotMapper, String.format(gridBody, "sim.agent.vsr.shape.free(s = \"%s\")", sensors), String.format(mlp, 1));
+    Future<Double> baseResult;
+    List<double[]> genotypes;
+    List<Future<Double>> results;
+    final Random rg = new Random();
+    final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    final FileWriter writer = new FileWriter(fileName);
+    if (saveG) {
+      writer.write("rigids;point;segment;genotype;fitness\n");
+    } else {
+      writer.write("rigids;point;segment;fitness\n");
+    }
+    final double SEGMENTLENGTH = 0.5;
+    final int NOFPOINTS = 20;
+    final int NOFTRIALS = 20;
+    final int FRAGMENTATIONS = 500;
+    for (int rigids = 0; rigids <= maxNOfRigids; ++rigids) {
+      String stringShape = buildStringShape(shape, rigids);
+      InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
+              (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(shape, rigids)));
+      int NOFPARAMS = mapper.exampleInput().size() - 2 * rigids;
+      for (int point = 0; point < NOFPOINTS; ++point) {
+        double[] baseGenotype = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextDouble(-1, 1)).toArray();
+        genotypes = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
+        results = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
+        baseResult = executorService.submit(() ->
+                fitness.apply(task.run(mapper.apply(Arrays.stream(sinCAdjustParams(baseGenotype, stringShape)).boxed().toList()), engine.get())));
+        for (int trial = 0; trial < NOFTRIALS; ++trial) {
+          double[] randomVector = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextGaussian()).toArray();
+          double norm = Math.sqrt(Arrays.stream(randomVector).boxed().mapToDouble(i -> Math.pow(i, 2)).sum());
+          for (int i = 0; i < randomVector.length; ++i) {
+            randomVector[i] *= (SEGMENTLENGTH / norm);
+          }
+          for (int iter = 1; iter < FRAGMENTATIONS + 1; ++iter) {
+            double tick = iter / (double) FRAGMENTATIONS;
+            double[] placeholder = new double[randomVector.length];
+            for (int i = 0; i < randomVector.length; ++i) {
+              placeholder[i] = baseGenotype[i] + tick * randomVector[i];
+            }
+            genotypes.add(placeholder);
+            results.add(executorService.submit(
+                    () -> fitness.apply(task.run(mapper.apply(Arrays.stream(placeholder).boxed().toList()), engine.get()))));
           }
         }
         try {
