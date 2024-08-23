@@ -229,13 +229,13 @@ public class Main {
       String stringShape = buildStringShape(shape, rigids);
       InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>> mapper =
               (InvertibleMapper<List<Double>, Supplier<EmbodiedAgent>>) nb.build(String.format(actualRobotMapper, buildStringShape(shape, rigids)));
-      int NOFPARAMS = mapper.exampleInput().size() - 2 * rigids;
+      int NOFPARAMS = mapper.exampleInput().size();
       for (int point = 0; point < NOFPOINTS; ++point) {
         double[] baseGenotype = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextDouble(-1, 1)).toArray();
         genotypes = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
         results = new ArrayList<>(NOFTRIALS * FRAGMENTATIONS);
         baseResult = executorService.submit(() ->
-                fitness.apply(task.run(mapper.apply(Arrays.stream(sinCAdjustParams(baseGenotype, stringShape)).boxed().toList()), engine.get())));
+                fitness.apply(task.run(mapper.apply(Arrays.stream(baseGenotype).boxed().toList()), engine.get())));
         for (int trial = 0; trial < NOFTRIALS; ++trial) {
           double[] randomVector = IntStream.range(0, NOFPARAMS).mapToDouble(i -> rg.nextGaussian()).toArray();
           double norm = Math.sqrt(Arrays.stream(randomVector).boxed().mapToDouble(i -> Math.pow(i, 2)).sum());
