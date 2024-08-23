@@ -68,9 +68,24 @@ public class Main {
 
   public static void main(String[] args) throws IOException {
     int NOFRIGIDS;
+    List<Shape> shapes;
     for (String arg : args) {
       String[] argSplit = arg.split("-");
-      for (Shape shape : Shape.values()) {
+      if (argSplit.length > 2) {
+        shapes = new ArrayList<>();
+        for (int i = 2; i < argSplit.length; ++i) {
+          shapes.add(switch (argSplit[2]) {
+            case "biped" -> Shape.BIPED;
+            case "worm" -> Shape.WORM;
+            case "t" -> Shape.T;
+            case "plus" -> Shape.PLUS;
+            default -> null;
+          });
+        }
+      } else {
+        shapes = Arrays.stream(Shape.values()).toList();
+      }
+      for (Shape shape : shapes) {
         NOFRIGIDS = switch (shape) {
           case BIPED, WORM -> 7;
           case T -> 9;
