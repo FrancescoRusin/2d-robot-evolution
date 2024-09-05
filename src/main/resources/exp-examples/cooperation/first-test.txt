@@ -4,17 +4,41 @@ ea.experiment(
             problem = ea.p.totalOrder(
                 qFunction = s.taskRunner(
                     task = s.task.prebuiltIndependentLocomotion(
-                        terrain = TERRAIN;
-                        shape = SHAPE
+                        terrain = s.terrain.holed(holeWs = [1.1]);
+                        shape = s.a.vsr.shape.free(value = "ssssssssss")
                     )
                 );
-                cFunction = FITNESSFUNCTION
+                cFunction = s.f.outcome.aaFinalW(transientTime = 0.0);
+                type = maximize
             )
         ) * (
             solver = ea.s.cmaEs(
-                mapper = MAPPER;
+                mapper = er.m.dsToNpHomoBrains(
+                    target = s.a.numIndependentVoxel(
+                        sensors = [
+                            s.sensor.sin()
+                        ];
+                        function = ds.num.mlp(
+                            innerLayerRatio = 1
+                        )
+                    )
+                );
                 nEval = 10000
             )
         ) * [ea.run()];
-    listeners = []
+    listeners = [
+        ea.l.allCsv(
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Csv/robotnav_maze_all.csv";
+            individualFunctions = [
+                ea.f.simQuality(of = ea.f.quality());
+                ea.f.id();
+                f.nTh(of = ea.f.parentIds(); n = 0);
+                f.toBase64(of = ea.function.genotype())
+            ];
+            functions = [ea.f.elapsedSecs()];
+            runFunctions = [];
+            deferred = true;
+            onlyLast = false
+        )
+    ]
 )
