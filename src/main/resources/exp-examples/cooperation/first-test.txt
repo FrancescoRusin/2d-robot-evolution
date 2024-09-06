@@ -1,44 +1,94 @@
 ea.experiment(
+    name = "coop-10v-1h";
     runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
         (
-            problem = ea.p.totalOrder(
+            problem = [ea.p.totalOrder(
+                name = "holed_loc";
                 qFunction = s.taskRunner(
                     task = s.task.prebuiltIndependentLocomotion(
                         terrain = s.terrain.holed(holeWs = [1.1]);
-                        shape = s.a.vsr.shape.free(value = "ssssssssss")
+                        shape = s.a.vsr.shape.free(s = "ssssssssss")
                     )
                 );
                 cFunction = s.f.outcome.aaFinalW(transientTime = 0.0);
                 type = maximize
-            )
+            )]
         ) * (
-            solver = ea.s.cmaEs(
+            solver = [ea.s.cmaEs(
                 mapper = er.m.dsToNpHomoBrains(
                     target = s.a.numIndependentVoxel(
                         sensors = [
-                            s.sensor.sin()
+                            s.sensors.sin(); s.sensors.a(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
+                            s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
+                            s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
+                            s.sensors.d(a = -90; r = 2); s.sensors.d(a = 0; r = 2); s.sensors.d(a = 90; r = 2); s.sensors.d(a = 180; r = 2)
                         ];
+                        nOfNFCChannels = 1;
                         function = ds.num.mlp(
                             innerLayerRatio = 1
                         )
                     )
                 );
                 nEval = 10000
-            )
+            )]
         ) * [ea.run()];
     listeners = [
-        ea.l.allCsv(
-            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Csv/robotnav_maze_all.csv";
-            individualFunctions = [
-                ea.f.simQuality(of = ea.f.quality());
-                ea.f.id();
-                f.nTh(of = ea.f.parentIds(); n = 0);
+        ea.l.bestCsv(
+            path = "/home/francescorusin/Desktop/Work/Cooperation/Csv/{name}_bests.csv";
+            defaultFunctions = [
+                ea.f.nOfIterations();
+                ea.f.nOfEvals();
+                ea.f.elapsedSecs()
+            ];
+            functions = [
+                s.f.outcome.aaFinalW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
+                s.f.outcome.aaFinalMinW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
+                s.f.outcome.aaFinalMaxW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
+                s.f.outcome.aaFinalMinH(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
+                s.f.outcome.aaFinalMaxH(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
                 f.toBase64(of = ea.function.genotype())
             ];
-            functions = [ea.f.elapsedSecs()];
-            runFunctions = [];
             deferred = true;
             onlyLast = false
+        );
+        ea.l.onExpDone(
+            of = ea.plot.multi.xy(
+                xSubplot = ea.f.runString(s = "_");
+                ySubplot = ea.f.runString(s = "_");
+                x = f.quantized(of = ea.f.nOfEvals(); q = 1000);
+                y = s.f.outcome.aaFinalW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
+                line = ea.f.runString(s = "_")
+            );
+            consumers = [
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-graph";
+                    of = ea.f.imagePlotter()
+                );
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-graph";
+                    of = ea.f.csvPlotter()
+                )
+            ]
+        );
+        ea.l.onExpDone(
+            of = ea.plot.multi.yBoxplot(
+                xSubplot = ea.f.runString(s = "_");
+                ySubplot = ea.f.runString(s = "_");
+                y = s.f.outcome.aaFinalW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
+                box = ea.f.runString(s = "_");
+                predicateValue = ea.f.rate(of = ea.f.progress());
+                condition = predicate.gtEq(t = 1)
+            );
+            consumers = [
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-box";
+                    of = ea.f.imagePlotter()
+                );
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-box";
+                    of = ea.f.csvPlotter()
+                )
+            ]
         )
     ]
 )
