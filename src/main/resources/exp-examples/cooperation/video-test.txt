@@ -1,14 +1,16 @@
+$shape = "ssssssssss"
 ea.experiment(
     name = "coop-1h";
     runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
         (
-            problem = (
-                qFunction = (task = (shape = (s = ["ssssssssss"; "ssssssss"; "ssssss"; "ssss"]) *
-                    [s.a.vsr.shape.free()]) *
-                    [s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(holeWs = [1.1]))]
-                    ) * [s.taskRunner()]
-                ) * [ea.p.totalOrder(
+            problem = [ea.p.totalOrder(
                 name = "holed_loc";
+                qFunction = s.taskRunner(
+                    task = s.task.prebuiltIndependentLocomotion(
+                        terrain = s.terrain.holed(holeWs = [1.1]);
+                        shape = s.a.vsr.shape.free(s = $shape)
+                    )
+                );
                 cFunction = s.f.outcome.aaFinalMaxW(transientTime = 0.0);
                 type = maximize
             )]
@@ -51,9 +53,20 @@ ea.experiment(
             onlyLast = false
         );
         ea.l.onRunDone(
-            of = ea.f.solution(of = ea.acc.lastBest());
+            of = ea.acc.all(
+                eFunction = ea.f.solution(of = ea.f.best());
+                listFunction = f.nTh(n = -1)
+            );
             preprocessor = s.taskVideoBuilder(
-                task = s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(holeWs = [1.1]))
+                task = s.task.prebuiltIndependentLocomotion(
+                    terrain = s.terrain.holed(holeWs = [1.1]);
+                    shape = s.a.vsr.shape.free(s = $shape)
+                );
+                drawer = sim.drawer(
+                    miniWorld = false;
+                    engineProfiling = false;
+                    info = false
+                )
             );
             consumers = [
                 ea.c.saver(
@@ -65,7 +78,7 @@ ea.experiment(
             of = ea.plot.multi.xy(
                 xSubplot = ea.f.runString(s = "_");
                 ySubplot = ea.f.runString(s = "_");
-                x = f.quantized(of = ea.f.nOfEvals(); q = 1000);
+                x = f.quantized(of = ea.f.nOfEvals(); q = 10);
                 y = s.f.outcome.aaFinalW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
                 line = ea.f.runString(s = "{run.problem.qFunction.task.shape.s}")
             );
