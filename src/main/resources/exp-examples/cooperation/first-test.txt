@@ -9,7 +9,7 @@ ea.experiment(
                     ) * [s.taskRunner()]
                 ) * [ea.p.totalOrder(
                 name = "holed_loc";
-                cFunction = s.f.outcome.aaFinalMaxW(transientTime = 0.0);
+                cFunction = s.f.outcome.aaFinalAvgW();
                 type = maximize
             )]
         ) * (
@@ -40,33 +40,22 @@ ea.experiment(
                 ea.f.elapsedSecs()
             ];
             functions = [
-                s.f.outcome.aaFinalW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
-                s.f.outcome.aaFinalMinW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
-                s.f.outcome.aaFinalMaxW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
-                s.f.outcome.aaFinalMinH(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
-                s.f.outcome.aaFinalMaxH(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
+                s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
+                s.f.outcome.aaFinalMinW(of = ea.f.quality(of = ea.f.best()));
+                s.f.outcome.aaFinalMaxW(of = ea.f.quality(of = ea.f.best()));
+                s.f.outcome.aaFinalMinH(of = ea.f.quality(of = ea.f.best()));
+                s.f.outcome.aaFinalMaxH(of = ea.f.quality(of = ea.f.best()));
                 f.toBase64(of = ea.function.genotype(of = ea.f.best()))
             ];
             deferred = true;
             onlyLast = false
-        );
-        ea.l.onRunDone(
-            of = ea.f.solution(of = ea.acc.lastBest());
-            preprocessor = s.taskVideoBuilder(
-                task = s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(holeWs = [1.1]))
-            );
-            consumers = [
-                ea.c.saver(
-                    path = "/home/francescorusin/Desktop/Work/Cooperation/Videos/{run.problem.qFunction.task.shape.s}-video{run.randomGenerator.seed:%1d}"
-                )
-            ]
         );
         ea.l.onExpDone(
             of = ea.plot.multi.xy(
                 xSubplot = ea.f.runString(s = "_");
                 ySubplot = ea.f.runString(s = "_");
                 x = f.quantized(of = ea.f.nOfEvals(); q = 1000);
-                y = s.f.outcome.aaFinalW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
+                y = s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
                 line = ea.f.runString(s = "{run.problem.qFunction.task.shape.s}")
             );
             consumers = [
@@ -84,7 +73,7 @@ ea.experiment(
             of = ea.plot.multi.yBoxplot(
                 xSubplot = ea.f.runString(s = "_");
                 ySubplot = ea.f.runString(s = "_");
-                y = s.f.outcome.aaFinalW(of = ea.f.quality(of = ea.f.best()); transientTime = 0.0);
+                y = s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
                 box = ea.f.runString(s = "{run.problem.qFunction.task.shape.s}");
                 predicateValue = ea.f.rate(of = ea.f.progress());
                 condition = predicate.gtEq(t = 1)
