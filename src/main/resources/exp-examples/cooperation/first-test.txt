@@ -5,7 +5,7 @@ ea.experiment(
             problem = (
                 qFunction = (task = (shape = (s = ["ssssssssss"; "ssssssss"; "ssssss"; "ssss"]) *
                     [s.a.vsr.shape.free()]) *
-                    [s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(holeWs = [1.1]))]
+                    [s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(holeWs = [1.25]))]
                     ) * [s.taskRunner()]
                 ) * [ea.p.totalOrder(
                 name = "holed_loc";
@@ -23,8 +23,11 @@ ea.experiment(
                             s.sensors.c(); s.sensors.d(a = 0; r = 5)
                         ];
                         nOfNFCChannels = 1;
-                        function = ds.num.mlp(
-                            nOfInnerLayers = 3
+                        function = ds.num.stepped(
+                            step = 0.1;
+                            inner = ds.num.mlp(
+                                nOfInnerLayers = 3
+                            )
                         )
                     )
                 );

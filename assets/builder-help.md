@@ -143,12 +143,11 @@ Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.FormattedName
 
 ### Builder `dynamicalSystem.environment.navigation.finalTimePlusD()`
 
-`ds.e.n.finalTimePlusD(of; epsilon; format)`
+`ds.e.n.finalTimePlusD(of; format)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.jsdynsym.control.Simulation$Outcome">Simulation$Outcome</abbr>&lt;<abbr title="io.github.ericmedvet.jsdynsym.control.SingleAgentTask$Step">SingleAgentTask$Step</abbr>&lt;double[], double[], <abbr title="io.github.ericmedvet.jsdynsym.control.navigation.State">State</abbr>&gt;&gt;&gt;</code> |
-| `epsilon` | d | `0.01` | <code>double</code> |
 | `format` | s | `%5.3f` | <code><abbr title="java.lang.String">String</abbr></code> |
 
 Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction">FormattedNamedFunction</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.jsdynsym.buildable.builders.NavigationFunctions.finalTimePlusD()` by robotevo2d-main:1.4.1-SNAPSHOT
@@ -254,6 +253,28 @@ Produces <code><abbr title="io.github.ericmedvet.jsdynsym.buildable.builders.Num
 
 Produces <code><abbr title="io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems$Builder">NumericalDynamicalSystems$Builder</abbr>&lt;<abbr title="io.github.ericmedvet.jsdynsym.core.numerical.NumericalDynamicalSystem">NumericalDynamicalSystem</abbr>&lt;<abbr title="io.github.ericmedvet.jsdynsym.core.composed.Stepped$State">Stepped$State</abbr>&lt;S&gt;&gt;, <abbr title="io.github.ericmedvet.jsdynsym.core.composed.Stepped$State">Stepped$State</abbr>&lt;S&gt;&gt;</code>; built from `io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems.inStepped()` by robotevo2d-main:1.4.1-SNAPSHOT
 
+### Builder `dynamicalSystem.num.mdPolynomial()`
+
+`ds.num.mdPolynomial(degree; clip)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `degree` | i | `1` | <code>int</code> |
+| `clip` | b | `true` | <code>boolean</code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems$Builder">NumericalDynamicalSystems$Builder</abbr>&lt;<abbr title="io.github.ericmedvet.jsdynsym.core.numerical.MultiDimensionPolynomial">MultiDimensionPolynomial</abbr>, <abbr title="io.github.ericmedvet.jsdynsym.core.StatelessSystem$State">StatelessSystem$State</abbr>&gt;</code>; built from `io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems.mdPolynomial()` by robotevo2d-main:1.4.1-SNAPSHOT
+
+### Builder `dynamicalSystem.num.mdPolynomial2d()`
+
+`ds.num.mdPolynomial2d(degree; clip)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `degree` | i | `1` | <code>int</code> |
+| `clip` | b | `true` | <code>boolean</code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems$Builder">NumericalDynamicalSystems$Builder</abbr>&lt;<abbr title="io.github.ericmedvet.jsdynsym.core.numerical.MultiDimensionPolynomial2D">MultiDimensionPolynomial2D</abbr>, <abbr title="io.github.ericmedvet.jsdynsym.core.StatelessSystem$State">StatelessSystem$State</abbr>&gt;</code>; built from `io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems.mdPolynomial2d()` by robotevo2d-main:1.4.1-SNAPSHOT
+
 ### Builder `dynamicalSystem.num.mlp()`
 
 `ds.num.mlp(innerLayerRatio; nOfInnerLayers; activationFunction)`
@@ -356,7 +377,7 @@ Aliases: `ds.saTask`, `ds.sat`, `ds.singleAgentTask`, `dynSys.saTask`, `dynSys.s
 | --- | --- | --- | --- |
 | `name` | s | interpolate `{environment.name}` | <code><abbr title="java.lang.String">String</abbr></code> |
 | `environment` | npm |  | <code><abbr title="io.github.ericmedvet.jsdynsym.control.Environment">Environment</abbr>&lt;O, A, S&gt;</code> |
-| `stopCondition` | npm |  | <code><abbr title="java.util.function.Predicate">Predicate</abbr>&lt;S&gt;</code> |
+| `stopCondition` | npm | `predicate.not(condition = predicate.always())` | <code><abbr title="java.util.function.Predicate">Predicate</abbr>&lt;S&gt;</code> |
 | `tRange` | npm |  | <code><abbr title="io.github.ericmedvet.jnb.datastructure.DoubleRange">DoubleRange</abbr></code> |
 | `dT` | d |  | <code>double</code> |
 
@@ -4119,13 +4140,34 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <
 
 Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.mrsim2d.buildable.builders.OutcomeFunctions.aaAvgW()` by robotevo2d-main:1.4.1-SNAPSHOT
 
-### Builder `sim.function.outcome.aaFinalH()`
+### Builder `sim.function.outcome.aaFinalAvgH()`
 
-`s.f.o.aaFinalH(transientTime; of; format)`
+`s.f.o.aaFinalAvgH(of; format)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `transientTime` | d | `5.0` | <code>double</code> |
+| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
+| `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
+
+Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.mrsim2d.buildable.builders.OutcomeFunctions.aaFinalAvgH()` by robotevo2d-main:1.4.1-SNAPSHOT
+
+### Builder `sim.function.outcome.aaFinalAvgW()`
+
+`s.f.o.aaFinalAvgW(of; format)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
+| `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
+
+Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.mrsim2d.buildable.builders.OutcomeFunctions.aaFinalAvgW()` by robotevo2d-main:1.4.1-SNAPSHOT
+
+### Builder `sim.function.outcome.aaFinalH()`
+
+`s.f.o.aaFinalH(of; format)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
 | `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
 | `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
 
@@ -4133,11 +4175,10 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <
 
 ### Builder `sim.function.outcome.aaFinalMaxH()`
 
-`s.f.o.aaFinalMaxH(transientTime; of; format)`
+`s.f.o.aaFinalMaxH(of; format)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `transientTime` | d | `5.0` | <code>double</code> |
 | `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
 | `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
 
@@ -4145,11 +4186,10 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <
 
 ### Builder `sim.function.outcome.aaFinalMaxW()`
 
-`s.f.o.aaFinalMaxW(transientTime; of; format)`
+`s.f.o.aaFinalMaxW(of; format)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `transientTime` | d | `5.0` | <code>double</code> |
 | `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
 | `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
 
@@ -4157,11 +4197,10 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <
 
 ### Builder `sim.function.outcome.aaFinalMinH()`
 
-`s.f.o.aaFinalMinH(transientTime; of; format)`
+`s.f.o.aaFinalMinH(of; format)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `transientTime` | d | `5.0` | <code>double</code> |
 | `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
 | `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
 
@@ -4169,11 +4208,10 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <
 
 ### Builder `sim.function.outcome.aaFinalMinW()`
 
-`s.f.o.aaFinalMinW(transientTime; of; format)`
+`s.f.o.aaFinalMinW(of; format)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `transientTime` | d | `5.0` | <code>double</code> |
 | `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
 | `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
 
@@ -4181,11 +4219,10 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <
 
 ### Builder `sim.function.outcome.aaFinalW()`
 
-`s.f.o.aaFinalW(transientTime; of; format)`
+`s.f.o.aaFinalW(of; format)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `transientTime` | d | `5.0` | <code>double</code> |
 | `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
 | `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
 

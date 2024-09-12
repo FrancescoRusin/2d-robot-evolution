@@ -30,6 +30,7 @@ module io.github.ericmedvet.robotevo2d.main {
   requires io.github.ericmedvet.jsdynsym.buildable;
   requires io.github.ericmedvet.jnb.core;
   requires io.github.ericmedvet.jnb.datastructure;
+  requires io.github.ericmedvet.jviz.core;
   requires jcommander;
   requires org.apache.commons.csv;
 
