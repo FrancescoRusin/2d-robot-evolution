@@ -36,7 +36,7 @@ ea.experiment(
         ) * [ea.run()];
     listeners = [
         ea.l.bestCsv(
-            path = "/home/francescorusin/Desktop/Work/Cooperation/Csv/{name}_bests.csv";
+            path = "Csv/{name}_bests.csv";
             defaultFunctions = [
                 ea.f.nOfIterations();
                 ea.f.nOfEvals();
@@ -63,11 +63,11 @@ ea.experiment(
             );
             consumers = [
                 ea.c.saver(
-                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-graph";
+                    path = "Drawings/{name}-fitness-graph";
                     of = ea.f.imagePlotter()
                 );
                 ea.c.saver(
-                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-graph";
+                    path = "Drawings/{name}-fitness-graph";
                     of = ea.f.csvPlotter()
                 )
             ]
@@ -83,11 +83,11 @@ ea.experiment(
             );
             consumers = [
                 ea.c.saver(
-                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-box";
+                    path = "Drawings/{name}-fitness-box";
                     of = ea.f.imagePlotter()
                 );
                 ea.c.saver(
-                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-box";
+                    path = "Drawings/{name}-fitness-box";
                     of = ea.f.csvPlotter()
                 )
             ]
