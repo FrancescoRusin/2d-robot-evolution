@@ -38,6 +38,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Videomaker {
+  static final String path = "C:/Users/Francesco/Desktop/Università/Dottorato/Ricerca/Cooperation";
   static final NamedBuilder<Object> nb = NamedBuilder.fromDiscovery();
 
   private record Individual(String s, List<Double> genotype, Double fitness) {}
@@ -48,7 +49,8 @@ public class Videomaker {
     final Function<List<Double>, Supplier<AbstractIndependentVoxel>> mapper = ((InvertibleMapper<
                 List<Double>, Supplier<AbstractIndependentVoxel>>)
             nb.build(
-                "er.m.dsToNpHomoBrains(target = s.a.numIndependentVoxel(sensors = [s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);s.sensors.c(); s.sensors.d(a = 0; r = 5)];nOfNFCChannels = 1;function = ds.num.mlp(nOfInnerLayers = 3)))"))
+                "er.m.dsToNpHomoBrains(target = s.a.numIndependentVoxel(sensors = [s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);s.sensors.c(); s.sensors.d(a = 0; r = 5)];nOfNFCChannels = 1;" +
+                        "function = ds.num.stepped(inner = ds.num.mlp(nOfInnerLayers = 3); stepT = 0.1)))"))
         .mapperFor(null);
     Function<String, PrebuiltIndependentLocomotion> PILBuilder = s -> (PrebuiltIndependentLocomotion) nb.build(
         "s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(holeWs = [1.25]); shape = s.a.vsr.shape.free(s = \"%s\"))"
@@ -57,8 +59,7 @@ public class Videomaker {
         s -> (TaskVideoBuilder<Supplier<AbstractIndependentVoxel>>) nb.build(
             "s.taskVideoBuilder(task = s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(holeWs = [1.25]); shape = s.a.vsr.shape.free(s = \"%s\")))"
                 .formatted(s));
-    final BufferedReader reader = new BufferedReader(
-        new FileReader("/home/francescorusin/Desktop/Work/Cooperation/Csv/coop-1h_best_fg.csv"));
+    final BufferedReader reader = new BufferedReader(new FileReader(path + "/Csv/coop-1h-step1_best_fg.csv"));
     List<Individual> individuals = new ArrayList<>();
     String line;
     while (Objects.nonNull(line = reader.readLine())) {
@@ -70,8 +71,7 @@ public class Videomaker {
     int index = -1;
     for (Individual i : individuals) {
       Video video = videoBuilderBuilder.apply(i.s).apply(mapper.apply(i.genotype));
-      File file = new File("/home/francescorusin/Desktop/Work/Cooperation/Videos/Video_%s_%d.mp4"
-          .formatted(i.s, (++index) % 10));
+      File file = new File(path + "/Videos/Video_%s_%d_1.mp4".formatted(i.s, (++index) % 10));
       Files.write(file.toPath(), video.data(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
     }
   }
