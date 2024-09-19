@@ -24,7 +24,7 @@ ea.experiment(
                         ];
                         nOfNFCChannels = 1;
                         function = ds.num.stepped(
-                            step = 0.1;
+                            stepT = 0.1;
                             inner = ds.num.mlp(
                                 nOfInnerLayers = 3
                             )
