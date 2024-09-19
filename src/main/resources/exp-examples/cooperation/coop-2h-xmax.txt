@@ -1,15 +1,15 @@
 ea.experiment(
-    name = "coop-1h-step1";
+    name = "coop-2h-xmax";
     runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
         (
             problem = (
                 qFunction = (task = (shape = (s = ["ssssssssss"; "ssssssss"; "ssssss"; "ssss"]) *
                     [s.a.vsr.shape.free()]) *
-                    [s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(holeWs = [1.25]))]
+                    [s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 20; holeWs = [2.05]))]
                     ) * [s.taskRunner()]
                 ) * [ea.p.totalOrder(
                 name = "holed_loc";
-                cFunction = s.f.outcome.aaFinalMrW();
+                cFunction = s.f.outcome.aaFinalMaxW();
                 type = maximize
             )]
         ) * (
@@ -36,18 +36,16 @@ ea.experiment(
         ) * [ea.run()];
     listeners = [
         ea.l.bestCsv(
-            path = "/home/francescorusin/Desktop/Work/Cooperation/Csv/{name}_bests.csv";
+            path = "./Csv/{name}_bests.csv";
             defaultFunctions = [
                 ea.f.nOfIterations();
                 ea.f.nOfEvals();
                 ea.f.elapsedSecs()
             ];
             functions = [
-                s.f.outcome.aaFinalMrW(of = ea.f.quality(of = ea.f.best()));
+                s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
                 s.f.outcome.aaFinalMinW(of = ea.f.quality(of = ea.f.best()));
                 s.f.outcome.aaFinalMaxW(of = ea.f.quality(of = ea.f.best()));
-                s.f.outcome.aaFinalMinH(of = ea.f.quality(of = ea.f.best()));
-                s.f.outcome.aaFinalMaxH(of = ea.f.quality(of = ea.f.best()));
                 f.toBase64(of = ea.function.genotype(of = ea.f.best()))
             ];
             deferred = true;
@@ -58,16 +56,16 @@ ea.experiment(
                 xSubplot = ea.f.runString(s = "_");
                 ySubplot = ea.f.runString(s = "_");
                 x = f.quantized(of = ea.f.nOfEvals(); q = 1000);
-                y = s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
+                y = s.f.outcome.aaFinalMaxW(of = ea.f.quality(of = ea.f.best()));
                 line = ea.f.runString(s = "{run.problem.qFunction.task.shape.s}")
             );
             consumers = [
                 ea.c.saver(
-                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-graph";
+                    path = "./Drawings/{name}-fitness-graph";
                     of = ea.f.imagePlotter()
                 );
                 ea.c.saver(
-                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-graph";
+                    path = "./Drawings/{name}-fitness-graph";
                     of = ea.f.csvPlotter()
                 )
             ]
@@ -76,18 +74,18 @@ ea.experiment(
             of = ea.plot.multi.yBoxplot(
                 xSubplot = ea.f.runString(s = "_");
                 ySubplot = ea.f.runString(s = "_");
-                y = s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
+                y = s.f.outcome.aaFinalMaxW(of = ea.f.quality(of = ea.f.best()));
                 box = ea.f.runString(s = "{run.problem.qFunction.task.shape.s}");
                 predicateValue = ea.f.rate(of = ea.f.progress());
                 condition = predicate.gtEq(t = 1)
             );
             consumers = [
                 ea.c.saver(
-                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-box";
+                    path = "./Drawings/{name}-fitness-box";
                     of = ea.f.imagePlotter()
                 );
                 ea.c.saver(
-                    path = "/home/francescorusin/Desktop/Work/Cooperation/Drawings/{name}-fitness-box";
+                    path = "./Drawings/{name}-fitness-box";
                     of = ea.f.csvPlotter()
                 )
             ]

@@ -25,7 +25,6 @@ import io.github.ericmedvet.jviz.core.drawer.Video;
 import io.github.ericmedvet.mrsim2d.core.agents.independentvoxel.AbstractIndependentVoxel;
 import io.github.ericmedvet.mrsim2d.core.tasks.locomotion.PrebuiltIndependentLocomotion;
 import io.github.ericmedvet.mrsim2d.viewer.TaskVideoBuilder;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -71,8 +70,8 @@ public class Videomaker {
     int index = -1;
     for (Individual i : individuals) {
       Video video = videoBuilderBuilder.apply(i.s).apply(mapper.apply(i.genotype));
-      File file =
-          new File("/home/francescorusin/Desktop/Work/Cooperation/Videos/Video_%s_%d.mp4".formatted(i.s, (++index) % 10));
+      File file = new File("/home/francescorusin/Desktop/Work/Cooperation/Videos/Video_%s_%d.mp4"
+          .formatted(i.s, (++index) % 10));
       Files.write(file.toPath(), video.data(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
     }
   }
