@@ -46,45 +46,45 @@ public class Videomaker {
   public static void main(String[] args) throws IOException {
     final Function<String, Object> fromBase64 = (Function<String, Object>) nb.build("f.fromBase64()");
     final Function<List<Double>, Supplier<AbstractIndependentVoxel>> mapper = ((InvertibleMapper<
-            List<Double>, Supplier<AbstractIndependentVoxel>>)
+                List<Double>, Supplier<AbstractIndependentVoxel>>)
             nb.build(
-                    "er.m.dsToNpHomoBrains(target = s.a.numIndependentVoxel(sensors = [s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);s.sensors.c(); s.sensors.d(a = 0; r = 5)];nOfNFCChannels = 1;"
-                            + "function = ds.num.stepped(inner = ds.num.mlp(nOfInnerLayers = 3); stepT = 0.1)))"))
-            .mapperFor(null);
+                "er.m.dsToNpHomoBrains(target = s.a.numIndependentVoxel(sensors = [s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);s.sensors.c(); s.sensors.d(a = 0; r = 5)];nOfNFCChannels = 1;"
+                    + "function = ds.num.stepped(inner = ds.num.mlp(nOfInnerLayers = 3); stepT = 0.1)))"))
+        .mapperFor(null);
     for (int hole : List.of(1, 2, 3)) {
       for (String fitness : List.of("xmax", "xavg", "xmin")) {
         Function<String, TaskVideoBuilder<Supplier<AbstractIndependentVoxel>>> videoBuilderBuilder =
-                s -> (TaskVideoBuilder<Supplier<AbstractIndependentVoxel>>) nb.build(
-                        "s.taskVideoBuilder(task = s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 12; holeWs = [%d.05]); shape = s.a.vsr.shape.free(s = \"%s\")))"
-                                .formatted(hole, s));
+            s -> (TaskVideoBuilder<Supplier<AbstractIndependentVoxel>>) nb.build(
+                "s.taskVideoBuilder(task = s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 12; holeWs = [%d.05]); shape = s.a.vsr.shape.free(s = \"%s\")))"
+                    .formatted(hole, s));
         final BufferedReader reader = new BufferedReader(
-                new FileReader(path + "/Csv/coop-%dh-%s_best_fg.csv".formatted(hole, fitness)));
+            new FileReader(path + "/Csv/coop-%dh-%s_best_fg.csv".formatted(hole, fitness)));
         List<Individual> individuals = new ArrayList<>();
         String line;
         while (Objects.nonNull(line = reader.readLine())) {
           String[] splitLine = line.split(";");
           individuals.add(new Individual(
-                  splitLine[0],
-                  (List<Double>) fromBase64.apply(splitLine[1]),
-                  Double.parseDouble(splitLine[2])));
+              splitLine[0],
+              (List<Double>) fromBase64.apply(splitLine[1]),
+              Double.parseDouble(splitLine[2])));
         }
         reader.close();
         Function<String, PrebuiltIndependentLocomotion> PIL = s -> (PrebuiltIndependentLocomotion) nb.build(
-                "s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 12; holeWs = [%d.05]); shape = s.a.vsr.shape.free(s = \"%s\"))"
-                        .formatted(hole, s));
+            "s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 12; holeWs = [%d.05]); shape = s.a.vsr.shape.free(s = \"%s\"))"
+                .formatted(hole, s));
         int index = -1;
         Function<AgentsOutcome<AgentsObservation>, Double> fitnessFunction =
-                switch (fitness) {
-                  case "xmax" -> AgentsOutcome::allAgentsFinalMaxWidth;
-                  case "xavg" -> AgentsOutcome::allAgentsFinalAverageWidth;
-                  case "xmin" -> AgentsOutcome::allAgentsFinalMinWidth;
-                  default -> (AgentsOutcome<AgentsObservation> a) -> 0d;
-                };
+            switch (fitness) {
+              case "xmax" -> AgentsOutcome::allAgentsFinalMaxWidth;
+              case "xavg" -> AgentsOutcome::allAgentsFinalAverageWidth;
+              case "xmin" -> AgentsOutcome::allAgentsFinalMinWidth;
+              default -> (AgentsOutcome<AgentsObservation> a) -> 0d;
+            };
         Supplier<Engine> engineSupplier = (Supplier<Engine>) nb.build("sim.engine()");
         for (Individual i : individuals) {
           ++index;
           Double actualFitness =
-                  fitnessFunction.apply(PIL.apply(i.s).run(mapper.apply(i.genotype), engineSupplier.get()));
+              fitnessFunction.apply(PIL.apply(i.s).run(mapper.apply(i.genotype), engineSupplier.get()));
           if (i.fitness != actualFitness) {
             System.out.printf("HUH?! %s, %s, %d; %f, %f\n", i.s, fitness, index, i.fitness, actualFitness);
           }
