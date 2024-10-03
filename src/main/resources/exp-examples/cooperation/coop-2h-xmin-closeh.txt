@@ -1,5 +1,5 @@
 ea.experiment(
-    name = "coop-2h-xmin";
+    name = "coop-2h-xmin-closeh";
     runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
         (
             problem = (

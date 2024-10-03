@@ -1,11 +1,11 @@
 ea.experiment(
-    name = "coop-1h-xavg";
+    name = "coop-1h-xavg-closeh";
     runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
         (
             problem = (
                 qFunction = (task = (shape = (s = ["ssssssssss"; "ssssssss"; "ssssss"; "ssss"]) *
                     [s.a.vsr.shape.free()]) *
-                    [s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 20; holeWs = [1.05]))]
+                    [s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 12; holeWs = [1.05]))]
                     ) * [s.taskRunner()]
                 ) * [ea.p.totalOrder(
                 name = "holed_loc";
