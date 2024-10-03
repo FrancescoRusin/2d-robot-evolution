@@ -50,45 +50,6 @@ ea.experiment(
             ];
             deferred = true;
             onlyLast = false
-        );
-        ea.l.onExpDone(
-            of = ea.plot.multi.xy(
-                xSubplot = ea.f.runString(s = "_");
-                ySubplot = ea.f.runString(s = "_");
-                x = f.quantized(of = ea.f.nOfEvals(); q = 1000);
-                y = s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
-                line = ea.f.runString(s = "{run.problem.qFunction.task.shape.s}")
-            );
-            consumers = [
-                ea.c.saver(
-                    path = "./Drawings/{name}-fitness-graph";
-                    of = ea.f.imagePlotter()
-                );
-                ea.c.saver(
-                    path = "./Drawings/{name}-fitness-graph";
-                    of = ea.f.csvPlotter()
-                )
-            ]
-        );
-        ea.l.onExpDone(
-            of = ea.plot.multi.yBoxplot(
-                xSubplot = ea.f.runString(s = "_");
-                ySubplot = ea.f.runString(s = "_");
-                y = s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
-                box = ea.f.runString(s = "{run.problem.qFunction.task.shape.s}");
-                predicateValue = ea.f.rate(of = ea.f.progress());
-                condition = predicate.gtEq(t = 1)
-            );
-            consumers = [
-                ea.c.saver(
-                    path = "./Drawings/{name}-fitness-box";
-                    of = ea.f.imagePlotter()
-                );
-                ea.c.saver(
-                    path = "./Drawings/{name}-fitness-box";
-                    of = ea.f.csvPlotter()
-                )
-            ]
         )
     ]
 )
