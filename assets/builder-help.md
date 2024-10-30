@@ -4166,17 +4166,6 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <
 
 Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.mrsim2d.buildable.builders.OutcomeFunctions.aaAvgW()` by robotevo2d-main:1.5.1-SNAPSHOT
 
-### Builder `sim.function.outcome.aaFinalAvgH()`
-
-`s.f.o.aaFinalAvgH(of; format)`
-
-| Param | Type | Default | Java type |
-| --- | --- | --- | --- |
-| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
-| `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
-
-Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.mrsim2d.buildable.builders.OutcomeFunctions.aaFinalAvgH()` by robotevo2d-main:1.5.1-SNAPSHOT
-
 ### Builder `sim.function.outcome.aaFinalAvgW()`
 
 `s.f.o.aaFinalAvgW(of; format)`
@@ -4242,6 +4231,28 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <
 | `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
 
 Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.mrsim2d.buildable.builders.OutcomeFunctions.aaFinalMinW()` by robotevo2d-main:1.5.1-SNAPSHOT
+
+### Builder `sim.function.outcome.aaFinalMrH()`
+
+`s.f.o.aaFinalMrH(of; format)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
+| `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
+
+Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.mrsim2d.buildable.builders.OutcomeFunctions.aaFinalMrH()` by robotevo2d-main:1.5.1-SNAPSHOT
+
+### Builder `sim.function.outcome.aaFinalMrW()`
+
+`s.f.o.aaFinalMrW(of; format)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.mrsim2d.core.tasks.AgentsOutcome">AgentsOutcome</abbr>&lt;?&gt;&gt;</code> |
+| `format` | s | `%.1f` | <code><abbr title="java.lang.String">String</abbr></code> |
+
+Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.mrsim2d.buildable.builders.OutcomeFunctions.aaFinalMrW()` by robotevo2d-main:1.5.1-SNAPSHOT
 
 ### Builder `sim.function.outcome.aaFinalW()`
 
