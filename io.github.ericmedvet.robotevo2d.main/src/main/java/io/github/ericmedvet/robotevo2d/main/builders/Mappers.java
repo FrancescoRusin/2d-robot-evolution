@@ -28,26 +28,31 @@ import io.github.ericmedvet.jnb.core.NamedBuilder;
 import io.github.ericmedvet.jnb.core.NamedParamMap;
 import io.github.ericmedvet.jnb.core.Param;
 import io.github.ericmedvet.jnb.core.ParamMap;
-import io.github.ericmedvet.jnb.datastructure.Grid;
-import io.github.ericmedvet.jnb.datastructure.GridUtils;
-import io.github.ericmedvet.jnb.datastructure.NumericalParametrized;
-import io.github.ericmedvet.jnb.datastructure.Pair;
+import io.github.ericmedvet.jnb.datastructure.*;
 import io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems;
 import io.github.ericmedvet.jsdynsym.core.composed.Composed;
 import io.github.ericmedvet.jsdynsym.core.numerical.MultivariateRealFunction;
 import io.github.ericmedvet.jsdynsym.core.numerical.NumericalDynamicalSystem;
 import io.github.ericmedvet.mrsim2d.buildable.builders.ReactiveVoxels;
+import io.github.ericmedvet.mrsim2d.buildable.builders.Sensors;
 import io.github.ericmedvet.mrsim2d.core.NumMultiBrained;
 import io.github.ericmedvet.mrsim2d.core.Sensor;
+import io.github.ericmedvet.mrsim2d.core.actions.Sense;
+import io.github.ericmedvet.mrsim2d.core.actions.SenseDistanceToBody;
 import io.github.ericmedvet.mrsim2d.core.agents.gridvsr.CentralizedNumGridVSR;
 import io.github.ericmedvet.mrsim2d.core.agents.gridvsr.DistributedNumGridVSR;
 import io.github.ericmedvet.mrsim2d.core.agents.gridvsr.GridBody;
 import io.github.ericmedvet.mrsim2d.core.agents.gridvsr.ReactiveGridVSR;
+import io.github.ericmedvet.mrsim2d.core.agents.independentvoxel.AbstractIndependentVoxel;
+import io.github.ericmedvet.mrsim2d.core.agents.independentvoxel.NumIndependentVoxel;
 import io.github.ericmedvet.mrsim2d.core.bodies.Body;
 import io.github.ericmedvet.mrsim2d.core.bodies.Voxel;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.random.RandomGenerator;
 
 @Discoverable(prefixTemplate = "evorobots|er.mapper|m")
 public class Mappers {
@@ -189,6 +194,68 @@ public class Mappers {
                 },
                 supplier -> Collections.nCopies(overallBrainSize, 0d),
                 "dsToNpHeteroBrains"));
+    }
+
+    @SuppressWarnings("unused")
+    public static <X> InvertibleMapper<X, Supplier<NumIndependentVoxel>> noisedDsToNIV(
+            @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, List<Double>> beforeM,
+            @Param("sensors") List<Sensor<? super Voxel>> sensors,
+            @Param(value = "areaActuation", dS = "sides") NumIndependentVoxel.AreaActuation areaActuation,
+            @Param(value = "attachActuation", dB = true) boolean attachActuation,
+            @Param(value = "nOfNFCChannels", dI = 1) int nOfNFCChannels,
+            @Param("function") NumericalDynamicalSystems.Builder<?, ?> numericalDynamicalSystemBuilder,
+            @Param(value = "bodySizeSigma", dD = 0d) double sizeNoise,
+            @Param(value = "sensorDistanceSigma", dD = 0d) double sensorNoise,
+            @Param(value = "sideContractionSigma", dD = 0d) double contractionNoise,
+            @Param(value = "parametersSigma", dD = 0d) double paramNoise,
+            @Param(value = "randomGenerator", dNPM = "m.deafaultRG(seed = -1)") RandomGenerator randomGenerator
+            ) {
+        NumericalDynamicalSystem<?> controller = numericalDynamicalSystemBuilder.apply(
+                MultivariateRealFunction.varNames(
+                        "x", NumIndependentVoxel.nOfInputs(sensors, nOfNFCChannels)),
+                MultivariateRealFunction.varNames(
+                        "y", NumIndependentVoxel.nOfOutputs(areaActuation, attachActuation, nOfNFCChannels)));
+        return beforeM.andThen(InvertibleMapper.from(
+                        (supplier, values) ->
+                            () -> {
+                                final double sideLength = AbstractIndependentVoxel.VOXEL_SIDE_LENGTH * randomGenerator.nextGaussian(1, sizeNoise);
+                                final List<Sensor<? super Voxel>> newSensors = new ArrayList<>();
+                                for (Sensor<? super Voxel> s : sensors) {
+                                    Sense<? extends Body> sensorType = s.apply(null);
+                                    if (sensorType instanceof SenseDistanceToBody sd) {
+                                        newSensors.add(Sensors.d(Math.toDegrees(sd.direction()), sd.distanceRange() + randomGenerator.nextGaussian(1, sensorNoise)));
+                                    } else {
+                                        newSensors.add(s);
+                                    }
+                                }
+                                final double sideContraction = new DoubleRange(0d, .4).clip(
+                                        Voxel.Material.DEFAULT_AREA_RATIO * randomGenerator.nextGaussian(1, contractionNoise)
+                                );
+                                final double[] newValues = values.stream()
+                                        .mapToDouble(d -> d * randomGenerator.nextGaussian(1, paramNoise))
+                                        .toArray();
+                                NumIndependentVoxel agent = new NumIndependentVoxel(
+                                        new Voxel.Material(Voxel.Material.SOFTNESS, sideContraction),
+                                        sideLength,
+                                        AbstractIndependentVoxel.VOXEL_MASS,
+                                        newSensors,
+                                        areaActuation,
+                                        attachActuation,
+                                        nOfNFCChannels,
+                                        numericalDynamicalSystemBuilder.apply(
+                                                MultivariateRealFunction.varNames(
+                                                        "x", NumIndependentVoxel.nOfInputs(sensors, nOfNFCChannels)),
+                                                MultivariateRealFunction.varNames(
+                                                        "y", NumIndependentVoxel.nOfOutputs(areaActuation, attachActuation, nOfNFCChannels))));
+                                ((NumericalParametrized<?>) agent.brain()).setParams(newValues);
+                                return agent;
+                        },
+                        supplier -> Collections.nCopies(
+                                ((double[]) Composed.shallowest(controller, NumericalParametrized.class).orElseThrow().getParams()).length,
+                                0d),
+                        "noisedDsToNIV"
+                )
+        );
     }
 
     @SuppressWarnings("unused")
