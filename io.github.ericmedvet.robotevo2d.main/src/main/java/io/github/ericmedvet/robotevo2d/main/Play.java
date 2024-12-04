@@ -34,10 +34,10 @@ import java.util.function.Supplier;
 
 @Discoverable(prefixTemplate = "evorobots|er")
 public record Play<G, R, S extends AgentsObservation, O extends AgentsOutcome<S>>(
-    @Param(value = "name", dS = "") String name,
-    @Param(value = "genotype", dNPM = "ea.f.identity()") Function<G, G> genotype,
-    @Param("mapper") InvertibleMapper<G, R> mapper,
-    @Param("task") Task<R, S, O> task,
-    @Param(value = "engine", dNPM = "sim.engine()") Supplier<Engine> engineSupplier,
-    @Param("consumers") List<PlayConsumers.ProducingConsumer> consumers,
-    @Param("outcomeFunctions") List<Function<?, ?>> outcomeFunctions) {}
+        @Param(value = "name", dS = "") String name,
+        @Param(value = "genotype", dNPM = "ea.f.identity()") Function<G, G> genotype,
+        @Param("mapper") InvertibleMapper<G, R> mapper,
+        @Param("task") Task<R, S, O> task,
+        @Param(value = "engine", dNPM = "sim.engine()") Supplier<Engine> engineSupplier,
+        @Param("consumers") List<PlayConsumers.ProducingConsumer> consumers,
+        @Param("outcomeFunctions") List<Function<?, ?>> outcomeFunctions) {}
