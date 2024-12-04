@@ -223,7 +223,7 @@ public class Mappers {
                                 for (Sensor<? super Voxel> s : sensors) {
                                     Sense<? extends Body> sensorType = s.apply(null);
                                     if (sensorType instanceof SenseDistanceToBody sd) {
-                                        newSensors.add(Sensors.d(Math.toDegrees(sd.direction()), sd.distanceRange() + randomGenerator.nextGaussian(1, sensorNoise)));
+                                        newSensors.add(Sensors.d(Math.toDegrees(sd.direction()), sd.distanceRange() * randomGenerator.nextGaussian(1, sensorNoise)));
                                     } else {
                                         newSensors.add(s);
                                     }
