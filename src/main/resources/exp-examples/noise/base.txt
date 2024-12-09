@@ -7,7 +7,8 @@ ea.experiment(
                     name = "holed_loc";
                     qFunction = s.taskRunner(
                         task = s.task.prebuiltIndependentLocomotion(
-                            terrain = s.terrain.holed(startW = 20; holeWs = [2.05]);
+                            duration = 30;
+                            terrain = s.terrain.holed(startW = 15; holeWs = [2.05]);
                             shape = s.a.vsr.shape.free(s = "ssssssssss")
                         )
                     );
@@ -26,23 +27,20 @@ ea.experiment(
             ]
         ) * (
             solver = [ea.s.cmaEs(
-                mapper = er.m.dsToNpHomoBrains(
-                    target = s.a.numIndependentVoxel(
-                        sensors = [
-                            s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
-                            s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);
-                            s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);
-                            s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
-                            s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
-                            s.sensors.c()
-                        ];
-                        nOfNFCChannels = 1;
-                        function = ds.num.stepped(
-                            stepT = 0.1;
-                            inner = ds.num.mlp(
-                                nOfInnerLayers = 1;
-                                innerLayerRatio = 1
-                            )
+                mapper = er.m.dsToNIV(
+                    sensors = [
+                        s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
+                        s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);
+                        s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);
+                        s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
+                        s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
+                        s.sensors.c()
+                    ];
+                    function = ds.num.stepped(
+                        stepT = 0.1;
+                        inner = ds.num.mlp(
+                            nOfInnerLayers = 1;
+                            innerLayerRatio = 1
                         )
                     )
                 );
