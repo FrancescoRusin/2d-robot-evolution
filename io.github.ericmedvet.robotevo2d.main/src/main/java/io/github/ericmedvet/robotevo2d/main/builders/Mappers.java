@@ -23,11 +23,7 @@ package io.github.ericmedvet.robotevo2d.main.builders;
 import io.github.ericmedvet.jgea.core.InvertibleMapper;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
-import io.github.ericmedvet.jnb.core.Discoverable;
-import io.github.ericmedvet.jnb.core.NamedBuilder;
-import io.github.ericmedvet.jnb.core.NamedParamMap;
-import io.github.ericmedvet.jnb.core.Param;
-import io.github.ericmedvet.jnb.core.ParamMap;
+import io.github.ericmedvet.jnb.core.*;
 import io.github.ericmedvet.jnb.datastructure.*;
 import io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems;
 import io.github.ericmedvet.jsdynsym.core.composed.Composed;
@@ -196,6 +192,19 @@ public class Mappers {
                 "dsToNpHeteroBrains"));
     }
 
+    @Alias(
+            name = "dsToNIV",
+            value = // spotless:off
+                    """
+                        noisedDsToNIV(
+                            bodySizeSigma = 0;
+                            sensorDistanceSigma = 0;
+                            sideContractionSigma = 0;
+                            parametersSigma = 0
+                        )
+                    """
+                    // spotless:on
+    )
     @SuppressWarnings("unused")
     public static <X> InvertibleMapper<X, Supplier<NumIndependentVoxel>> noisedDsToNIV(
             @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, List<Double>> beforeM,
@@ -204,10 +213,10 @@ public class Mappers {
             @Param(value = "attachActuation", dB = true) boolean attachActuation,
             @Param(value = "nOfNFCChannels", dI = 1) int nOfNFCChannels,
             @Param("function") NumericalDynamicalSystems.Builder<?, ?> numericalDynamicalSystemBuilder,
-            @Param(value = "bodySizeSigma", dD = 0d) double sizeNoise,
-            @Param(value = "sensorDistanceSigma", dD = 0d) double sensorNoise,
-            @Param(value = "sideContractionSigma", dD = 0d) double contractionNoise,
-            @Param(value = "parametersSigma", dD = 0d) double paramNoise,
+            @Param("bodySizeSigma") double sizeNoise,
+            @Param("sensorDistanceSigma") double sensorNoise,
+            @Param("sideContractionSigma") double contractionNoise,
+            @Param("parametersSigma") double paramNoise,
             @Param(value = "randomGenerator", dNPM = "m.deafaultRG(seed = -1)") RandomGenerator randomGenerator
             ) {
         NumericalDynamicalSystem<?> controller = numericalDynamicalSystemBuilder.apply(
