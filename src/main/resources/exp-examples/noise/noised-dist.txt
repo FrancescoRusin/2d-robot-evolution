@@ -1,0 +1,87 @@
+$neval = 10000
+$reps = 30
+$noise = 0.2
+ea.experiment(
+    name = "noised";
+    runs = (randomGenerator = (seed = [-30:1:-1]) * [m.defaultRG()]) *
+        (
+            problem = (type = [maximize]) * [
+                ea.p.totalOrder(
+                    name = "holed_loc";
+                    qFunction = s.taskMultiRunner(
+                        task = s.task.prebuiltIndependentLocomotion(
+                            duration = 30;
+                            terrain = s.terrain.holed(startW = 15; holeWs = [2.05]);
+                            shape = s.a.vsr.shape.free(s = "ssssssssss")
+                        );
+                        repetitions = $reps
+                    );
+                    cFunction = f.avg(of = f.each(mapF = s.f.outcome.aaFinalAvgW()))
+                );
+                ea.p.totalOrder(
+                    name = "piling";
+                    qFunction = s.taskMultiRunner(
+                        task = s.task.standPiling(
+                            duration = 30;
+                            nOfAgents = 10
+                        );
+                        repetitions = $reps
+                    );
+                    cFunction = f.avg(of = f.each(mapF = s.f.outcome.aaAvgMaxH()))
+                )
+            ]
+        ) * (
+            solver = (
+                mapper = [
+                    er.m.noisedDsToNIV(
+                        sensors = [
+                            s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
+                            s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);
+                            s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);
+                            s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
+                            s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
+                            s.sensors.c()
+                        ];
+                        function = ds.num.stepped(
+                            stepT = 0.1;
+                            inner = ds.num.mlp(
+                                nOfInnerLayers = 1;
+                                innerLayerRatio = 1
+                            )
+                        );
+                        bodySizeSigma = 0;
+                        sensorDistanceSigma = $noise;
+                        sideContractionSigma = 0;
+                        parametersSigma = 0
+                    )
+                ]) * [ea.s.cmaEs(nEval = $neval)]
+        ) * [ea.run()];
+    listeners = [
+        ea.l.bestCsv(
+            path = "./Csv/{name}_bests.csv";
+            defaultRunFunctions = [
+                ea.f.runKey(key = "run.problem.name");
+                ea.f.runKey(key = "run.solver.name");
+                ea.f.runKey(key = "run.randomGenerator.seed");
+                ea.f.runKey(key = "run.solver.mapper.bodySizeSigma");
+                ea.f.runKey(key = "run.solver.mapper.sensorDistanceSigma");
+                ea.f.runKey(key = "run.solver.mapper.sideContractionSigma");
+                ea.f.runKey(key = "run.solver.mapper.parametersSigma")
+            ];
+            defaultFunctions = [
+                ea.f.nOfIterations();
+                ea.f.nOfEvals();
+                ea.f.elapsedSecs()
+            ];
+            functions = [
+                f.avg(of = f.each(of = ea.f.quality(of = ea.f.best()); mapF = s.f.outcome.aaFinalAvgW()));
+                f.avg(of = f.each(of = ea.f.quality(of = ea.f.best()); mapF = s.f.outcome.aaAvgMaxH()));
+                f.toBase64(of = ea.function.genotype(of = ea.f.best()));
+                f.toBase64(of = f.each(of = ea.f.quality(of = ea.f.best()); mapF = s.f.outcome.aaFinalAvgW()));
+                f.toBase64(of = f.each(of = ea.f.quality(of = ea.f.best()); mapF = s.f.outcome.aaAvgMaxH()))
+            ];
+            deferred = true;
+            onlyLast = false
+        )
+    ]
+)
