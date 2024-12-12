@@ -155,7 +155,7 @@ ea.experiment(
                 ea.f.elapsedSecs()
             ];
             functions = [
-                ea.f.quality(of = ea.f.best())
+                f.avg(of = ea.f.quality(of = ea.f.best()))
             ];
             deferred = true;
             onlyLast = false
