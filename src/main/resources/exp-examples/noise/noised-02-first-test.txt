@@ -132,7 +132,7 @@ ea.experiment(
                 ea.f.elapsedSecs()
             ];
             functions = [
-                ea.f.avg(of = ea.f.quality(of = ea.f.best()));
+                f.avg(of = ea.f.quality(of = ea.f.best()));
                 f.toBase64(of = f.avg(of = ea.f.quality(of = ea.f.best())));
                 f.toBase64(of = ea.f.genotype(of = ea.f.best()))
             ];
