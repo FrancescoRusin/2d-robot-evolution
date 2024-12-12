@@ -1,6 +1,7 @@
 $neval = 10000
 $reps = 10
 $noise = 0.2
+$step = 0.2
 ea.experiment(
     name = "noised-02-piling-test";
     runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
@@ -33,7 +34,7 @@ ea.experiment(
                             s.sensors.c()
                         ];
                         function = ds.num.stepped(
-                            stepT = 0.1;
+                            stepT = $step;
                             inner = ds.num.mlp(
                                 nOfInnerLayers = 1;
                                 innerLayerRatio = 1
@@ -54,7 +55,7 @@ ea.experiment(
                             s.sensors.c()
                         ];
                         function = ds.num.stepped(
-                            stepT = 0.1;
+                            stepT = $step;
                             inner = ds.num.mlp(
                                 nOfInnerLayers = 1;
                                 innerLayerRatio = 1
@@ -75,7 +76,7 @@ ea.experiment(
                             s.sensors.c()
                         ];
                         function = ds.num.stepped(
-                            stepT = 0.1;
+                            stepT = $step;
                             inner = ds.num.mlp(
                                 nOfInnerLayers = 1;
                                 innerLayerRatio = 1
@@ -96,7 +97,7 @@ ea.experiment(
                             s.sensors.c()
                         ];
                         function = ds.num.stepped(
-                            stepT = 0.1;
+                            stepT = $step;
                             inner = ds.num.mlp(
                                 nOfInnerLayers = 1;
                                 innerLayerRatio = 1
