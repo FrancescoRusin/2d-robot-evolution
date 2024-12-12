@@ -52,7 +52,8 @@ import java.util.random.RandomGenerator;
 @Discoverable(prefixTemplate = "evorobots|er.mapper|m")
 public class Mappers {
 
-    private Mappers() {}
+    private Mappers() {
+    }
 
     private static int argmax(double[] values) {
         if (values.length == 0) {
@@ -70,7 +71,7 @@ public class Mappers {
     @SuppressWarnings("unused")
     public static <X> InvertibleMapper<X, Supplier<DistributedNumGridVSR>> bodyBrainHomoDistributedVSR(
             @Param(value = "of", dNPM = "ea.m.identity()")
-                    InvertibleMapper<X, Pair<Grid<GridBody.VoxelType>, NumericalDynamicalSystem<?>>> beforeM,
+            InvertibleMapper<X, Pair<Grid<GridBody.VoxelType>, NumericalDynamicalSystem<?>>> beforeM,
             @Param(value = "w", dI = 10) int w,
             @Param(value = "h", dI = 10) int h,
             @Param(value = "nOfSignals", dI = 1) int nOfSignals,
@@ -127,8 +128,8 @@ public class Mappers {
     private static void checkNumericalParametrizedSizeConsistency(NumMultiBrained numMultiBrained) {
         List<Integer> brainSizes = numMultiBrained.brains().stream()
                 .map(b -> ((double[]) Composed.shallowest(b, NumericalParametrized.class)
-                                .orElseThrow()
-                                .getParams())
+                        .orElseThrow()
+                        .getParams())
                         .length)
                 .distinct()
                 .toList();
@@ -156,8 +157,8 @@ public class Mappers {
         checkType(target, NumericalParametrized.class);
         List<Integer> brainSizes = target.brains().stream()
                 .map(b -> ((double[]) Composed.shallowest(b, NumericalParametrized.class)
-                                .orElseThrow()
-                                .getParams())
+                        .orElseThrow()
+                        .getParams())
                         .length)
                 .toList();
         int overallBrainSize = brainSizes.stream().mapToInt(i -> i).sum();
@@ -173,8 +174,8 @@ public class Mappers {
                         int c = 0;
                         for (NumericalDynamicalSystem<?> brain : t.brains()) {
                             int brainSize = ((double[]) Composed.shallowest(brain, NumericalParametrized.class)
-                                            .orElseThrow()
-                                            .getParams())
+                                    .orElseThrow()
+                                    .getParams())
                                     .length;
                             //noinspection unchecked
                             Composed.shallowest(brain, NumericalParametrized.class)
@@ -202,8 +203,8 @@ public class Mappers {
         checkNumericalParametrizedSizeConsistency(target);
         int brainSize = target.brains().stream()
                 .map(b -> ((double[]) Composed.shallowest(b, NumericalParametrized.class)
-                                .orElseThrow()
-                                .getParams())
+                        .orElseThrow()
+                        .getParams())
                         .length)
                 .findFirst()
                 .orElseThrow();
@@ -312,7 +313,7 @@ public class Mappers {
         return beforeM.andThen(InvertibleMapper.from(
                 (supplier, nmrf) -> {
                     Grid<Integer> indexGrid = Grid.create(w, h, (x, y) -> {
-                        double[] output = nmrf.apply(new double[] {(double) x / (double) w, (double) y / (double) h});
+                        double[] output = nmrf.apply(new double[]{(double) x / (double) w, (double) y / (double) h});
                         int iMax = argmax(output);
                         return output[iMax] > 0 ? iMax + 1 : 0;
                     });
@@ -338,13 +339,13 @@ public class Mappers {
             name = "dsToNIV",
             value = // spotless:off
                     """
-                        noisedDsToNIV(
-                            bodySizeSigma = 0;
-                            sensorDistanceSigma = 0;
-                            sideContractionSigma = 0;
-                            parametersSigma = 0
-                        )
-                    """
+                                noisedDsToNIV(
+                                    bodySizeSigma = 0;
+                                    sensorDistanceSigma = 0;
+                                    sideContractionSigma = 0;
+                                    parametersSigma = 0
+                                )
+                            """
             // spotless:on
     )
     @SuppressWarnings("unused")

@@ -1,0 +1,164 @@
+$neval = 10000
+$reps = 10
+$noise = 0.2
+ea.experiment(
+    name = "noised-02-piling-test";
+    runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
+        (
+            problem = ea.p.totalOrder(
+                name = "piling";
+                qFunction = f.each(
+                    of = s.taskMultiRunner(
+                        task = s.task.standPiling(
+                            duration = 20;
+                            nOfAgents = 8
+                        );
+                        repetitions = $reps
+                    );
+                    mapF = s.f.outcome.aaAvgMaxH()
+                );
+                cFunction = f.avg();
+                type = maximize
+            )
+        ) * (
+            solver = (
+                mapper = (randomGenerator = [m.defaultRG(seed = 1)]) * [
+                    er.m.noisedDsToNIV(
+                        sensors = [
+                            s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
+                            s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);
+                            s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);
+                            s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
+                            s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
+                            s.sensors.c()
+                        ];
+                        function = ds.num.stepped(
+                            stepT = 0.1;
+                            inner = ds.num.mlp(
+                                nOfInnerLayers = 1;
+                                innerLayerRatio = 1
+                            )
+                        );
+                        bodySizeSigma = $noise;
+                        sensorDistanceSigma = 0;
+                        sideContractionSigma = 0;
+                        parametersSigma = 0
+                    );
+                    er.m.noisedDsToNIV(
+                        sensors = [
+                            s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
+                            s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);
+                            s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);
+                            s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
+                            s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
+                            s.sensors.c()
+                        ];
+                        function = ds.num.stepped(
+                            stepT = 0.1;
+                            inner = ds.num.mlp(
+                                nOfInnerLayers = 1;
+                                innerLayerRatio = 1
+                            )
+                        );
+                        bodySizeSigma = 0;
+                        sensorDistanceSigma = $noise;
+                        sideContractionSigma = 0;
+                        parametersSigma = 0
+                    );
+                    er.m.noisedDsToNIV(
+                        sensors = [
+                            s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
+                            s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);
+                            s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);
+                            s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
+                            s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
+                            s.sensors.c()
+                        ];
+                        function = ds.num.stepped(
+                            stepT = 0.1;
+                            inner = ds.num.mlp(
+                                nOfInnerLayers = 1;
+                                innerLayerRatio = 1
+                            )
+                        );
+                        bodySizeSigma = 0;
+                        sensorDistanceSigma = 0;
+                        sideContractionSigma = $noise;
+                        parametersSigma = 0
+                    );
+                    er.m.noisedDsToNIV(
+                        sensors = [
+                            s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
+                            s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);
+                            s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);
+                            s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
+                            s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
+                            s.sensors.c()
+                        ];
+                        function = ds.num.stepped(
+                            stepT = 0.1;
+                            inner = ds.num.mlp(
+                                nOfInnerLayers = 1;
+                                innerLayerRatio = 1
+                            )
+                        );
+                        bodySizeSigma = 0;
+                        sensorDistanceSigma = 0;
+                        sideContractionSigma = 0;
+                        parametersSigma = $noise
+                    )
+                ]) * [ea.s.ga(
+                    representation = ea.r.doubleString();
+                    nPop = 100;
+                    nEval = $neval;
+                    remap = false
+                )]
+        ) * [ea.run()];
+    listeners = [
+        ea.l.bestCsv(
+            path = "./Csv/{name}_bests.csv";
+            defaultRunFunctions = [
+                ea.f.runKey(key = "run.problem.name");
+                ea.f.runKey(key = "run.solver.name");
+                ea.f.runKey(key = "run.randomGenerator.seed");
+                ea.f.runKey(key = "run.solver.mapper.bodySizeSigma");
+                ea.f.runKey(key = "run.solver.mapper.sensorDistanceSigma");
+                ea.f.runKey(key = "run.solver.mapper.sideContractionSigma");
+                ea.f.runKey(key = "run.solver.mapper.parametersSigma")
+            ];
+            defaultFunctions = [
+                ea.f.nOfIterations();
+                ea.f.nOfEvals();
+                ea.f.elapsedSecs()
+            ];
+            functions = [
+                ea.f.quality(of = ea.f.best());
+                f.toBase64(of = f.avg(of = ea.f.quality(of = ea.f.best())));
+                f.toBase64(of = ea.f.genotype(of = ea.f.best()))
+            ];
+            deferred = true;
+            onlyLast = false
+        );
+        ea.l.console(
+            defaultRunFunctions = [
+                ea.f.runKey(key = "run.problem.name");
+                ea.f.runKey(key = "run.solver.name");
+                ea.f.runKey(key = "run.randomGenerator.seed");
+                ea.f.runKey(key = "run.solver.mapper.bodySizeSigma");
+                ea.f.runKey(key = "run.solver.mapper.sensorDistanceSigma");
+                ea.f.runKey(key = "run.solver.mapper.sideContractionSigma");
+                ea.f.runKey(key = "run.solver.mapper.parametersSigma")
+            ];
+            defaultFunctions = [
+                ea.f.nOfIterations();
+                ea.f.nOfEvals();
+                ea.f.elapsedSecs()
+            ];
+            functions = [
+                ea.f.quality(of = ea.f.best())
+            ];
+            deferred = true;
+            onlyLast = false
+        )
+    ]
+)
