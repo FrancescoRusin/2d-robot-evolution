@@ -117,7 +117,7 @@ ea.experiment(
         ) * [ea.run()];
     listeners = [
         ea.l.bestCsv(
-            path = "./Csv/{name}_bests.csv";
+            path = "./Csv/{name}-bests.csv";
             defaultRunFunctions = [
                 ea.f.runKey(key = "run.problem.name");
                 ea.f.runKey(key = "run.solver.name");
