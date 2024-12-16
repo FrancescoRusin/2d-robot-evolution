@@ -4,7 +4,7 @@ $noise = 0.2
 $step = 0.2
 ea.experiment(
     name = "noised-02-piling-test";
-    runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
+    runs = (randomGenerator = (seed = [-5:1:-1]) * [m.defaultRG()]) *
         (
             problem = ea.p.totalOrder(
                 name = "piling";
