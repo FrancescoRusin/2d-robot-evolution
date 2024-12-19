@@ -367,15 +367,16 @@ public class Mappers {
                         "y", NumIndependentVoxel.nOfOutputs(areaActuation, attachActuation, nOfNFCChannels)));
         return beforeM.andThen(InvertibleMapper.from(
                 (supplier, values) -> () -> {
-                    final double sideLength =
-                            AbstractIndependentVoxel.VOXEL_SIDE_LENGTH * randomGenerator.nextGaussian(1, sizeNoise);
+                    final double sideLength = Math.max(0d,
+                            AbstractIndependentVoxel.VOXEL_SIDE_LENGTH * randomGenerator.nextGaussian(1, sizeNoise)
+                    );
                     final List<Sensor<? super Voxel>> newSensors = new ArrayList<>();
                     for (Sensor<? super Voxel> s : sensors) {
                         Sense<? extends Body> sensorType = s.apply(null);
                         if (sensorType instanceof SenseDistanceToBody sd) {
                             newSensors.add(Sensors.d(
                                     Math.toDegrees(sd.direction()),
-                                    sd.distanceRange() * randomGenerator.nextGaussian(1, sensorNoise)));
+                                    Math.max(0d, sd.distanceRange() * randomGenerator.nextGaussian(1, sensorNoise))));
                         } else {
                             newSensors.add(s);
                         }
