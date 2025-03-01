@@ -3,11 +3,11 @@ $reps = 10
 $noise = 0.1
 $step = 0.2
 ea.experiment(
-    name = "noised-01-holed-arch";
-    runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
+    name = "noised-01-holed-anch";
+    runs = (randomGenerator = (seed = [-1]) * [m.defaultRG()]) *
         (
             problem = ea.p.totalOrder(
-                name = "holed-arch";
+                name = "holed-anch";
                 qFunction = f.each(
                     of = s.taskMultiRunner(
                         task = s.task.prebuiltIndependentLocomotion(
