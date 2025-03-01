@@ -1,0 +1,55 @@
+ea.experiment(
+    name = "coop-1h-xmin-12";
+    runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
+        (
+            problem = (
+                qFunction = (task = (shape = (s = ["ssssssssssss"]) *
+                    [s.a.vsr.shape.free()]) *
+                    [s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 20; holeWs = [1.05]))]
+                    ) * [s.taskRunner()]
+                ) * [ea.p.totalOrder(
+                name = "holed_loc";
+                cFunction = s.f.outcome.aaFinalMinW();
+                type = maximize
+            )]
+        ) * (
+            solver = [ea.s.cmaEs(
+                mapper = er.m.dsToNpHomoBrains(
+                    target = s.a.numIndependentVoxel(
+                        sensors = [
+                            s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
+                            s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
+                            s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
+                            s.sensors.c(); s.sensors.d(a = 0; r = 5)
+                        ];
+                        nOfNFCChannels = 1;
+                        function = ds.num.stepped(
+                            stepT = 0.1;
+                            inner = ds.num.mlp(
+                                nOfInnerLayers = 3
+                            )
+                        )
+                    )
+                );
+                nEval = 10000
+            )]
+        ) * [ea.run()];
+    listeners = [
+        ea.l.bestCsv(
+            path = "./Csv/{name}_bests.csv";
+            defaultFunctions = [
+                ea.f.nOfIterations();
+                ea.f.nOfEvals();
+                ea.f.elapsedSecs()
+            ];
+            functions = [
+                s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
+                s.f.outcome.aaFinalMinW(of = ea.f.quality(of = ea.f.best()));
+                s.f.outcome.aaFinalMaxW(of = ea.f.quality(of = ea.f.best()));
+                f.toBase64(of = ea.function.genotype(of = ea.f.best()))
+            ];
+            deferred = true;
+            onlyLast = false
+        )
+    ]
+)
