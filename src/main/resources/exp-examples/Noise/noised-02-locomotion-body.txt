@@ -76,27 +76,6 @@ ea.experiment(
             ];
             deferred = true;
             onlyLast = false
-        );
-        ea.l.console(
-            defaultRunFunctions = [
-                ea.f.runKey(key = "run.problem.name");
-                ea.f.runKey(key = "run.solver.name");
-                ea.f.runKey(key = "run.randomGenerator.seed");
-                ea.f.runKey(key = "run.solver.mapper.bodySizeSigma");
-                ea.f.runKey(key = "run.solver.mapper.sensorDistanceSigma");
-                ea.f.runKey(key = "run.solver.mapper.sideContractionSigma");
-                ea.f.runKey(key = "run.solver.mapper.parametersSigma")
-            ];
-            defaultFunctions = [
-                ea.f.nOfIterations();
-                ea.f.nOfEvals();
-                ea.f.elapsedSecs()
-            ];
-            functions = [
-                f.avg(of = ea.f.quality(of = ea.f.best()))
-            ];
-            deferred = true;
-            onlyLast = false
         )
     ]
 )

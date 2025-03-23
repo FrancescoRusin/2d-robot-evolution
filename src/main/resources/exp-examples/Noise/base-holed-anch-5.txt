@@ -62,23 +62,6 @@ ea.experiment(
             ];
             deferred = true;
             onlyLast = false
-        );
-        ea.l.console(
-            defaultRunFunctions = [
-                ea.f.runKey(key = "run.problem.name");
-                ea.f.runKey(key = "run.solver.name");
-                ea.f.runKey(key = "run.randomGenerator.seed")
-            ];
-            defaultFunctions = [
-                ea.f.nOfIterations();
-                ea.f.nOfEvals();
-                ea.f.elapsedSecs()
-            ];
-            functions = [
-                s.f.outcome.aaAvgMaxH(of = ea.f.quality(of = ea.f.best()))
-            ];
-            deferred = true;
-            onlyLast = false
         )
     ]
 )
