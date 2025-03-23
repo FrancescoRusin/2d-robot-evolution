@@ -1,7 +1,7 @@
 $neval = 10000
 $step = 0.2
 ea.experiment(
-    name = "base-holed-anch";
+    name = "base-holed-anch-5";
     runs = (randomGenerator = (seed = [-1]) * [m.defaultRG()]) *
         (
             problem = ea.p.totalOrder(
