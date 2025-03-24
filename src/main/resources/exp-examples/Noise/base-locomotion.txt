@@ -56,7 +56,7 @@ ea.experiment(
                 ea.f.elapsedSecs()
             ];
             functions = [
-                s.f.outcome.aaAvgMaxW(of = ea.f.quality(of = ea.f.best()));
+                s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
                 f.toBase64(of = ea.f.genotype(of = ea.f.best()))
             ];
             deferred = true;
