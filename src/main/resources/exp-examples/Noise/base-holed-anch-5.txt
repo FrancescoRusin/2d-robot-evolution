@@ -10,7 +10,7 @@ ea.experiment(
                     task = s.task.prebuiltIndependentLocomotion(
                         terrain = s.terrain.holed(startW = 20; holeWs = [2.05]);
                         terrainAttachableDistance = 0.0;
-                        shape = s.a.vsr.shape.free(s = "ssssssssss")
+                        shape = s.a.vsr.shape.free(s = "sssss")
                     )
                 );
                 cFunction = s.f.outcome.aaFinalAvgW();
@@ -57,7 +57,7 @@ ea.experiment(
                 ea.f.elapsedSecs()
             ];
             functions = [
-                s.f.outcome.aaAvgMaxH(of = ea.f.quality(of = ea.f.best()));
+                s.f.outcome.aaAvgMaxW(of = ea.f.quality(of = ea.f.best()));
                 f.toBase64(of = ea.f.genotype(of = ea.f.best()))
             ];
             deferred = true;

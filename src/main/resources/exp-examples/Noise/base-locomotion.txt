@@ -1,17 +1,16 @@
 $neval = 10000
 $step = 0.2
 ea.experiment(
-    name = "base-holed-anch";
+    name = "base-locomotion";
     runs = (randomGenerator = (seed = [-1]) * [m.defaultRG()]) *
         (
             problem = ea.p.totalOrder(
-                name = "holed-anch";
+                name = "locomotion";
                 qFunction = s.taskRunner(
                     task = s.task.prebuiltIndependentLocomotion(
-                        terrain = s.terrain.holed(startW = 20; holeWs = [2.05]);
-                        terrainAttachableDistance = 0.0;
-                        shape = s.a.vsr.shape.free(s = "ssssssssss")
-                    )
+                        duration = 30;
+                        shape = s.a.vsr.shape.free(s = "sss-sss")
+                    );
                 );
                 cFunction = s.f.outcome.aaFinalAvgW();
                 type = maximize
