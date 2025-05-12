@@ -12,6 +12,9 @@ ea.experiment(
                     of = s.taskMultiRunner(
                         task = s.task.prebuiltIndependentLocomotion(
                             duration = 30;
+                            initialXGap = 2.0;
+                            xGapRatio = 1.05;
+                            yGapRatio = 1.05;
                             shape = s.a.vsr.shape.free(s = "sss-sss")
                         );
                         repetitions = $reps
