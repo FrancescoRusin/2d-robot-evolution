@@ -28,6 +28,8 @@ import io.github.ericmedvet.mrsim2d.core.agents.independentvoxel.NumIndependentV
 import io.github.ericmedvet.mrsim2d.viewer.TaskVideoBuilder;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -46,15 +48,68 @@ public class NoisedVideoMaker {
   }
 
   public static void main(String[] args) throws IOException {
-    noiseVideos("noised-01-holed-anch");
+    exceptionalVideos("noised-05-holed-anch", 40);
+  }
+
+  public static void exceptionalVideos(String exp, double threshold) throws IOException {
+    final String task;
+    final String taskName;
+    final double noise = Double.parseDouble(exp.split("-")[1]) * 0.1;
+    if (exp.contains("locomotion")) {
+      task = "s.task.prebuiltIndependentLocomotion(duration = 30; shape = s.a.vsr.shape.free(s = \"sss-sss\"))";
+      taskName = "locomotion";
+    } else if (exp.contains("holed-anch-5")) {
+      task = "s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 8; holeWs = [2.05]); terrainAttachableDistance = 0.0; shape = s.a.vsr.shape.free(s = \"sssss\"))";
+      taskName = "holed-anch";
+    } else if (exp.contains("holed-anch")) {
+      task = "s.task.prebuiltIndependentLocomotion(terrain = s.terrain.holed(startW = 20; holeWs = [2.05]); terrainAttachableDistance = 0.0; shape = s.a.vsr.shape.free(s = \"ssssssssss\"))";
+      taskName = "holed-anch";
+    } else {
+      task = "";
+      taskName = "";
+    }
+    final BufferedReader reader = new BufferedReader(
+        new FileReader(
+            path + "Csv/%s/%s-finals.csv".formatted(taskName.substring(0, 1).toUpperCase() + taskName.substring(1), exp)
+        )
+    );
+    final Function<List<Double>, Supplier<NumIndependentVoxel>> mapper = ((InvertibleMapper<List<Double>, Supplier<NumIndependentVoxel>>) nb
+        .build(
+            String.format(
+                Locale.US,
+                "er.m.noisedDsToNIV(sensors = [s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90); s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5); s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5); s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W); s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W); s.sensors.c()" + "]; function = ds.num.stepped(stepT = 0.2; inner = ds.num.mlp(nOfInnerLayers = 1; innerLayerRatio = 1)); bodySizeSigma = %.3f; sensorDistanceSigma = 0.0; sideContractionSigma = 0.0; parametersSigma = 0.0)",
+                noise
+            )
+        )).mapperFor(null);
+    String line = reader.readLine();
+    String[] splitLine = line.split(";");
+    final int fitnessIndex = Arrays.stream(splitLine).toList().indexOf("best→quality→avg");
+    final int genotypeIndex = Arrays.stream(splitLine).toList().indexOf("best→genotype→to.base64");
+    while (Objects.nonNull(line = reader.readLine())) {
+      splitLine = line.split(";");
+      if (Double.parseDouble(splitLine[fitnessIndex]) > threshold) {
+        ExecutorService threader = Executors.newFixedThreadPool(10);
+        List<Double> genotype = (List<Double>) base64Deserializer(splitLine[genotypeIndex]);
+        for (int i = 0; i < 100; ++i) {
+          System.out.printf("Thread %d\n", i);
+          TaskVideoBuilder<Supplier<NumIndependentVoxel>> taskVideoBuilder = (TaskVideoBuilder<Supplier<NumIndependentVoxel>>) nb
+              .build("sim.taskVideoBuilder(task = %s)".formatted(task));
+          taskVideoBuilder.save(
+              new VideoBuilder.VideoInfo(800, 600, VideoUtils.EncoderFacility.DEFAULT),
+              new File(path + "Videos/%s-attempt-%d.mp4".formatted(exp, i)),
+              mapper.apply(genotype)
+          );
+        }
+        System.out.println("Closing");
+        threader.close();
+        System.out.println("Closed");
+        break;
+      }
+    }
   }
 
   public static void noisePilingVideos(String exp) throws IOException {
-    final BufferedReader reader = new BufferedReader(
-        new FileReader(
-            path + "Csv/Piling/%s-finals.csv".formatted(exp)
-        )
-    );
+    final BufferedReader reader = new BufferedReader(new FileReader(path + "Csv/Piling/%s-finals.csv".formatted(exp)));
     String line = reader.readLine();
     String[] splitLine = line.split(";");
     int genotypeIndex = -1;
