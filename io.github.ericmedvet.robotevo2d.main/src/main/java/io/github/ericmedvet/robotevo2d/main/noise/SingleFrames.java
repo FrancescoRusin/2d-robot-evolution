@@ -39,7 +39,7 @@ public class SingleFrames implements Consumer<Snapshot> {
             g.setClip(0, 0, image.getWidth(), image.getHeight());
             drawer.draw(List.of(snapshot), g);
             try {
-                ImageIO.write(image, "png", new File(path + "-%d".formatted(counter)));
+                ImageIO.write(image, "png", new File(path + "-%d.png".formatted(counter)));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
