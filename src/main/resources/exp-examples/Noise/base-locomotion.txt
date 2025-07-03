@@ -10,7 +10,7 @@ ea.experiment(
                     task = s.task.prebuiltIndependentLocomotion(
                         duration = 30;
                         shape = s.a.vsr.shape.free(s = "sss-sss")
-                    );
+                    )
                 );
                 cFunction = s.f.outcome.aaFinalAvgW();
                 type = maximize

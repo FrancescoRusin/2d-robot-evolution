@@ -37,7 +37,7 @@ public class InputViewer extends JFrame implements Consumer<Snapshot> {
   private final Drawer drawer;
 
   private final Canvas canvas;
-    private final List<Snapshot> snapshots;
+  private final List<Snapshot> snapshots;
   private Instant startingInstant;
   private boolean advance;
 
