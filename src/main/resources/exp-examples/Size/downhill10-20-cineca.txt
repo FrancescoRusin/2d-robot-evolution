@@ -1,0 +1,66 @@
+$nEval = 10000
+$step = 0.2
+ea.experiment(
+    name = "downhill10-20-cineca";
+    runs = [
+        ea.run(
+            problem = ea.p.totalOrder(
+                name = "locomotion";
+                qFunction = s.taskRunner(
+                    task = s.task.prebuiltIndependentLocomotion(
+                        duration = 30;
+                        terrain = sim.terrain.downhill(a = 10);
+                        shape = s.a.vsr.shape.free(s = "sssss-sssss-sssss-sssss")
+                    )
+                );
+                cFunction = s.f.outcome.aaFinalAvgW();
+                type = maximize
+            );
+            solver = ea.s.ga(
+                representation = ea.r.doubleString();
+                mapper = er.m.dsToNIV(
+                    sensors = [
+                        s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);
+                        s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);
+                        s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);
+                        s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);
+                        s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);
+                        s.sensors.c()
+                    ];
+                    function = ds.num.stepped(
+                        stepT = $step;
+                        inner = ds.num.mlp(
+                            nOfInnerLayers = 2;
+                            innerLayerRatio = 2
+                        )
+                    )
+                );
+                nPop = 100;
+                nEval = $nEval;
+                remap = false
+            );
+            randomGenerator = m.defaultRG(seed = -1)
+        )
+    ];
+    listeners = [
+        ea.l.bestCsv(
+            path = "./Csv/{name}-bests.csv";
+            defaultRunFunctions = [
+                ea.f.runKey(key = "run.problem.name");
+                ea.f.runKey(key = "run.solver.name");
+                ea.f.runKey(key = "run.randomGenerator.seed")
+            ];
+            defaultFunctions = [
+                ea.f.nOfIterations();
+                ea.f.nOfEvals();
+                ea.f.elapsedSecs()
+            ];
+            functions = [
+                s.f.outcome.aaFinalAvgW(of = ea.f.quality(of = ea.f.best()));
+                f.toBase64(of = ea.f.genotype(of = ea.f.best()))
+            ];
+            deferred = true;
+            onlyLast = false
+        )
+    ]
+)
