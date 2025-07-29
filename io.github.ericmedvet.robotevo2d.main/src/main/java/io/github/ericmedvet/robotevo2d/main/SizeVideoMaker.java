@@ -23,19 +23,16 @@ import io.github.ericmedvet.jgea.core.InvertibleMapper;
 import io.github.ericmedvet.jnb.core.NamedBuilder;
 import io.github.ericmedvet.jviz.core.drawer.VideoBuilder;
 import io.github.ericmedvet.jviz.core.util.VideoUtils;
-import io.github.ericmedvet.mrsim2d.core.Snapshot;
 import io.github.ericmedvet.mrsim2d.core.agents.independentvoxel.AbstractIndependentVoxel;
 import io.github.ericmedvet.mrsim2d.core.agents.independentvoxel.NumIndependentVoxel;
 import io.github.ericmedvet.mrsim2d.core.engine.Engine;
 import io.github.ericmedvet.mrsim2d.core.tasks.locomotion.PrebuiltIndependentLocomotion;
 import io.github.ericmedvet.mrsim2d.viewer.Drawer;
 import io.github.ericmedvet.mrsim2d.viewer.TaskVideoBuilder;
-import java.awt.*;
-import java.awt.image.BufferedImage;
+
 import java.io.*;
 import java.util.*;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.ConsoleHandler;
@@ -49,45 +46,6 @@ public class SizeVideoMaker {
   final static NamedBuilder<Object> nb = NamedBuilder.fromDiscovery();
   final static String path = "C:/Users/Francesco/Desktop/Università/Dottorato/Ricerca/Size/";
   private static final Logger L = Logger.getLogger(SizeVideoMaker.class.getName());
-
-  private static class ImageCollector implements Consumer<Snapshot> {
-    private final List<BufferedImage> images = new ArrayList<>();
-    private final List<Snapshot> snapshots = new ArrayList<>();
-    private final List<Double> snapshotTs = new ArrayList<>();
-    private double lastDrawnT;
-    private double lastT;
-    private final int w;
-    private final int h;
-    private final Drawer drawer;
-
-    public ImageCollector(Drawer drawer, int w, int h) {
-      this.w = w;
-      this.h = h;
-      this.drawer = drawer;
-    }
-
-    public void accept(Snapshot snapshot) {
-      if (!Double.isNaN(lastT)) {
-        snapshotTs.add(snapshot.t() - lastT);
-      }
-      lastT = snapshot.t();
-      double tolerance = snapshotTs.stream().mapToDouble(t -> t).average().orElse(0d) / 2d;
-      snapshots.add(snapshot);
-      if (snapshot.t() >= lastDrawnT + (1d / 30) - tolerance) {
-        lastDrawnT = snapshot.t();
-        // create image
-        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
-        // draw
-        Graphics2D g = image.createGraphics();
-        g.setClip(0, 0, image.getWidth(), image.getHeight());
-        drawer.draw(snapshots, g);
-        g.dispose();
-        // add
-        images.add(image);
-        snapshots.clear();
-      }
-    }
-  }
 
   private static Object base64Deserializer(String serialized) {
     byte[] bytes = Base64.getDecoder().decode(serialized);
@@ -117,8 +75,10 @@ public class SizeVideoMaker {
     L.addHandler(handler);
     L.setLevel(Level.ALL);
 
-    for (String task : List.of("downhill10", "downhill30", "hilly2")) {
-      allVideos("%s-20".formatted(task));
+    allVideos("flat-20-30");
+    allVideos("downhill20-20-30");
+    for (String task : List.of("downhill10", "downhill20", "flat", "hilly2")) {
+      allVideos("%s-20-60".formatted(task));
     }
   }
 
@@ -128,14 +88,7 @@ public class SizeVideoMaker {
         .build(
             "er.m.dsToNIV(" + "  sensors = [" + "    s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);" + "    s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);" + "    s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);" + "    s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);" + "    s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);" + "    s.sensors.c()" + "  ];" + "  function = ds.num.stepped(" + "    stepT = 0.2;" + "    inner = ds.num.mlp(" + "      nOfInnerLayers = 2;" + "      innerLayerRatio = 2" + "    )" + "  )" + ")"
         )).mapperFor(null);
-    int param1 = Integer.parseInt(exp.split("-")[0].replaceAll("[a-z]", ""));
-    int nOfAgents = Integer.parseInt(exp.split("-")[1]);
-    final String task = "s.task.prebuiltIndependentLocomotion(" + "duration = 30;" + switch (exp.split("-")[0]
-        .replaceAll("[0-9]", "")) {
-      case "downhill" -> "terrain = sim.terrain.downhill(a = %d);".formatted(param1);
-      case "hilly" -> "terrain = sim.terrain.hilly(seed = %d);".formatted(param1);
-      default -> "";
-    } + "shape = s.a.vsr.shape.free(s = \"%s\")".formatted(posConfig(nOfAgents)) + ")";
+    final String task = getTask(exp);
     final PrebuiltIndependentLocomotion taskRunner = (PrebuiltIndependentLocomotion) nb.build(task);
     final Supplier<Engine> engineSupplier = (Supplier<Engine>) nb.build("sim.engine()");
     final Supplier<Drawer> drawerSupplier = () -> ((Function<String, Drawer>) nb.build("sim.drawer()")).apply("");
@@ -148,12 +101,10 @@ public class SizeVideoMaker {
       splitLine = line.split(";");
       final List<Double> genotype = (List<Double>) base64Deserializer(splitLine[genotypeIndex]);
       final double fitness = Double.parseDouble(splitLine[fitnessIndex]);
-      final ImageCollector imageCollector = new ImageCollector(drawerSupplier.get(), 800, 600);
       L.info(
           "Fitness: %.4f vs %.4f".formatted(
               fitness,
-              taskRunner.run(() -> mapper.apply(genotype).get(), engineSupplier.get(), imageCollector)
-                  .allAgentsFinalAverageWidth()
+              taskRunner.run(() -> mapper.apply(genotype).get(), engineSupplier.get()).allAgentsFinalAverageWidth()
           )
       );
       TaskVideoBuilder<Supplier<AbstractIndependentVoxel>> taskVideoBuilder = new TaskVideoBuilder<>(
@@ -171,6 +122,20 @@ public class SizeVideoMaker {
           mapper.apply(genotype)::get
       );
     }
+  }
+
+  private static String getTask(String exp) {
+    String[] expSplit = exp.split("-");
+    int param1 = Integer.parseInt("0" + expSplit[0].replaceAll("[a-z]", ""));
+    int nOfAgents = Integer.parseInt(expSplit[1]);
+    int duration = Integer.parseInt(expSplit[2].replaceAll("[a-z]", ""));
+    return "s.task.prebuiltIndependentLocomotion(" + "duration = %d;".formatted(duration) + switch (exp.split("-")[0]
+        .replaceAll("[0-9]", "")) {
+      case "downhill" -> "terrain = sim.terrain.downhill(a = %d);".formatted(param1);
+      case "hilly" -> "terrain = sim.terrain.hilly(seed = %d);".formatted(param1);
+      case "flat" -> "terrain = sim.terrain.flat();";
+      default -> "";
+    } + "shape = s.a.vsr.shape.free(s = \"%s\")".formatted(posConfig(nOfAgents)) + ")";
   }
 
   private static String posConfig(int n) {
