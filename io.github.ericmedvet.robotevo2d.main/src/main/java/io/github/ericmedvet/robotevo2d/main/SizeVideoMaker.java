@@ -75,20 +75,29 @@ public class SizeVideoMaker {
     L.addHandler(handler);
     L.setLevel(Level.ALL);
 
-    allVideos("flat-20-30");
-    allVideos("downhill20-20-30");
     for (String task : List.of("downhill10", "downhill20", "flat", "hilly2")) {
       allVideos("%s-20-60".formatted(task));
     }
   }
 
   public static void allVideos(String exp) throws IOException {
+    L.info("Starting exp %s".formatted(exp));
     final BufferedReader reader = new BufferedReader(new FileReader(path + "Csv/%s-finals.csv".formatted(exp)));
     final Function<List<Double>, Supplier<NumIndependentVoxel>> mapper = ((InvertibleMapper<List<Double>, Supplier<NumIndependentVoxel>>) nb
         .build(
             "er.m.dsToNIV(" + "  sensors = [" + "    s.sensors.sin(); s.sensors.a(); s.sensors.ar(); s.sensors.rv(a = 0); s.sensors.rv(a = 90);" + "    s.sensors.d(a = 0; r = 5); s.sensors.d(a = 45; r = 5); s.sensors.d(a = 90; r = 5); s.sensors.d(a = 135; r = 5);" + "    s.sensors.d(a = 180; r = 5); s.sensors.d(a = 225; r = 5); s.sensors.d(a = 270; r = 5); s.sensors.d(a = 315; r = 5);" + "    s.sensors.sc(s = N); s.sensors.sc(s = E); s.sensors.sc(s = S); s.sensors.sc(s = W);" + "    s.sensors.sa(s = N); s.sensors.sa(s = E); s.sensors.sa(s = S); s.sensors.sa(s = W);" + "    s.sensors.c()" + "  ];" + "  function = ds.num.stepped(" + "    stepT = 0.2;" + "    inner = ds.num.mlp(" + "      nOfInnerLayers = 2;" + "      innerLayerRatio = 2" + "    )" + "  )" + ")"
         )).mapperFor(null);
-    final String task = getTask(exp);
+    String[] expSplit = exp.split("-");
+    int param1 = Integer.parseInt("0" + expSplit[0].replaceAll("[a-z]", ""));
+    int nOfAgents = Integer.parseInt(expSplit[1]);
+    int duration = Integer.parseInt(expSplit[2].replaceAll("[a-z]", ""));
+    final String task = "s.task.prebuiltIndependentLocomotion(" + "duration = %d;".formatted(duration) + switch (exp.split("-")[0]
+            .replaceAll("[0-9]", "")) {
+      case "downhill" -> "terrain = sim.terrain.downhill(a = %d);".formatted(param1);
+      case "hilly" -> "terrain = sim.terrain.hilly(seed = %d);".formatted(param1);
+      case "flat" -> "terrain = sim.terrain.flat();";
+      default -> "";
+    } + "shape = s.a.vsr.shape.free(s = \"%s\")".formatted(posConfig(nOfAgents)) + ")";
     final PrebuiltIndependentLocomotion taskRunner = (PrebuiltIndependentLocomotion) nb.build(task);
     final Supplier<Engine> engineSupplier = (Supplier<Engine>) nb.build("sim.engine()");
     final Supplier<Drawer> drawerSupplier = () -> ((Function<String, Drawer>) nb.build("sim.drawer()")).apply("");
@@ -113,7 +122,7 @@ public class SizeVideoMaker {
           engineSupplier,
           "",
           0,
-          30,
+          duration,
           30
       );
       taskVideoBuilder.save(
@@ -122,20 +131,6 @@ public class SizeVideoMaker {
           mapper.apply(genotype)::get
       );
     }
-  }
-
-  private static String getTask(String exp) {
-    String[] expSplit = exp.split("-");
-    int param1 = Integer.parseInt("0" + expSplit[0].replaceAll("[a-z]", ""));
-    int nOfAgents = Integer.parseInt(expSplit[1]);
-    int duration = Integer.parseInt(expSplit[2].replaceAll("[a-z]", ""));
-    return "s.task.prebuiltIndependentLocomotion(" + "duration = %d;".formatted(duration) + switch (exp.split("-")[0]
-        .replaceAll("[0-9]", "")) {
-      case "downhill" -> "terrain = sim.terrain.downhill(a = %d);".formatted(param1);
-      case "hilly" -> "terrain = sim.terrain.hilly(seed = %d);".formatted(param1);
-      case "flat" -> "terrain = sim.terrain.flat();";
-      default -> "";
-    } + "shape = s.a.vsr.shape.free(s = \"%s\")".formatted(posConfig(nOfAgents)) + ")";
   }
 
   private static String posConfig(int n) {
