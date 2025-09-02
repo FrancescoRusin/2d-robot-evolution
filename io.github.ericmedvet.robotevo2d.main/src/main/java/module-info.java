@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * robotevo2d-main
  * %%
- * Copyright (C) 2018 - 2024 Eric Medvet
+ * Copyright (C) 2018 - 2025 Eric Medvet
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ module io.github.ericmedvet.robotevo2d.main {
   requires io.github.ericmedvet.jnb.datastructure;
   requires jcommander;
   requires org.apache.commons.csv;
+  requires io.github.ericmedvet.jsdynsym.control;
   requires io.github.ericmedvet.jviz.core;
 
   opens io.github.ericmedvet.robotevo2d.main.builders to io.github.ericmedvet.jnb.core;
@@ -43,8 +44,4 @@ module io.github.ericmedvet.robotevo2d.main {
   exports io.github.ericmedvet.robotevo2d.main.helper;
 
   opens io.github.ericmedvet.robotevo2d.main.dynamicalsystems to io.github.ericmedvet.jnb.core;
-
-  exports io.github.ericmedvet.robotevo2d.main.noise;
-
-  opens io.github.ericmedvet.robotevo2d.main.noise to io.github.ericmedvet.jnb.core;
 }
